@@ -58,9 +58,6 @@ Partial Class Launcher
         Me.picBanner = New System.Windows.Forms.PictureBox
         Me.PictureBox1 = New System.Windows.Forms.PictureBox
         Me.btnLaunch = New System.Windows.Forms.Button
-        Me.line2 = New Microsoft.VisualBasic.PowerPacks.LineShape
-        Me.ShapeContainer1 = New Microsoft.VisualBasic.PowerPacks.ShapeContainer
-        Me.line1 = New Microsoft.VisualBasic.PowerPacks.LineShape
         Me.lblVersion = New System.Windows.Forms.Label
         Me.GroupBox1.SuspendLayout()
         Me.tabs.SuspendLayout()
@@ -442,34 +439,6 @@ Partial Class Launcher
         Me.btnLaunch.TextAlign = System.Drawing.ContentAlignment.MiddleRight
         Me.btnLaunch.UseVisualStyleBackColor = True
         '
-        'line2
-        '
-        Me.line2.BorderColor = System.Drawing.SystemColors.ControlLightLight
-        Me.line2.Name = "line2"
-        Me.line2.X1 = 0
-        Me.line2.X2 = 460
-        Me.line2.Y1 = 120
-        Me.line2.Y2 = 120
-        '
-        'ShapeContainer1
-        '
-        Me.ShapeContainer1.Location = New System.Drawing.Point(0, 0)
-        Me.ShapeContainer1.Margin = New System.Windows.Forms.Padding(0)
-        Me.ShapeContainer1.Name = "ShapeContainer1"
-        Me.ShapeContainer1.Shapes.AddRange(New Microsoft.VisualBasic.PowerPacks.Shape() {Me.line1, Me.line2})
-        Me.ShapeContainer1.Size = New System.Drawing.Size(449, 505)
-        Me.ShapeContainer1.TabIndex = 12
-        Me.ShapeContainer1.TabStop = False
-        '
-        'line1
-        '
-        Me.line1.BorderColor = System.Drawing.SystemColors.ScrollBar
-        Me.line1.Name = "line1"
-        Me.line1.X1 = 0
-        Me.line1.X2 = 460
-        Me.line1.Y1 = 119
-        Me.line1.Y2 = 119
-        '
         'lblVersion
         '
         Me.lblVersion.Anchor = CType((System.Windows.Forms.AnchorStyles.Top Or System.Windows.Forms.AnchorStyles.Right), System.Windows.Forms.AnchorStyles)
@@ -498,7 +467,6 @@ Partial Class Launcher
         Me.Controls.Add(Me.PictureBox1)
         Me.Controls.Add(Me.btnCancel)
         Me.Controls.Add(Me.btnLaunch)
-        Me.Controls.Add(Me.ShapeContainer1)
         Me.FormBorderStyle = System.Windows.Forms.FormBorderStyle.FixedSingle
         Me.Icon = CType(resources.GetObject("$this.Icon"), System.Drawing.Icon)
         Me.MaximizeBox = False
@@ -557,9 +525,6 @@ Partial Class Launcher
     Friend WithEvents chkPlayer As System.Windows.Forms.CheckBox
     Friend WithEvents cboPlayer As System.Windows.Forms.ComboBox
     Friend WithEvents picBanner As System.Windows.Forms.PictureBox
-    Friend WithEvents line2 As Microsoft.VisualBasic.PowerPacks.LineShape
-    Friend WithEvents ShapeContainer1 As Microsoft.VisualBasic.PowerPacks.ShapeContainer
-    Friend WithEvents line1 As Microsoft.VisualBasic.PowerPacks.LineShape
     Friend WithEvents lblVersion As System.Windows.Forms.Label
 
 End Class
