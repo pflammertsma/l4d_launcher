@@ -35,22 +35,23 @@ Public Class IPHlp
     Private Const ICMP_STATUS_GENERAL_FAILURE As Int32 = 11050
     'General Failure
 
-    Private Shared machines As New Collection()
-
-    Public Shared Function ReturnMachines(ByVal nTimeout As Integer, ByVal nStart As Integer, ByVal nEnd As Integer) As Collection
+    Public Shared Function ReturnMachines(ByVal nTimeout As Integer, ByVal nStart As Integer, ByVal nEnd As Integer) As PingObject
+        Dim oPingObject As New PingObject
+        oPingObject.nStart = nStart
+        oPingObject.nEnd = nEnd
         Dim reply As String
         Dim sLocalhost As String = IPHlp.Localhost(3)
         Dim sIP As String
         For i = nStart To nEnd
             Try
                 sIP = sLocalhost & "." & CStr(i)
-                Console.WriteLine(sIP)
-                IPHlp.Ping(sIP, Nothing, reply, nTimeout)
-                Console.WriteLine(reply)
+                'Console.WriteLine(sIP)
+                IPHlp.Ping(oPingObject, sIP, Nothing, reply, nTimeout)
+                'Console.WriteLine(reply)
             Catch
             End Try
         Next i
-        Return machines
+        Return oPingObject
     End Function
 
     Public Shared Function Localhost(Optional ByVal nBlocks As Integer = 4) As String
@@ -67,12 +68,12 @@ Public Class IPHlp
         Next
     End Function
 
-    Public Shared Function Ping(ByVal sIP As String, Optional ByRef IP As IPAddress = Nothing, Optional ByRef Reply As String = "", Optional ByRef RoundTrip As Int32 = 0) As Boolean
+    Public Shared Function Ping(ByRef oPingObject As PingObject, ByVal sIP As String, Optional ByRef IP As IPAddress = Nothing, Optional ByRef Reply As String = "", Optional ByRef RoundTrip As Int32 = 0) As Boolean
         IP = Dns.GetHostByName(sIP).AddressList(0)
-        Return Ping(IP, Reply, RoundTrip)
+        Return Ping(oPingObject, IP, Reply, RoundTrip)
     End Function
 
-    Public Shared Function Ping(ByVal IP As IPAddress, Optional ByRef Reply As String = "", Optional ByRef RoundTrip As Int32 = 0) As Boolean
+    Public Shared Function Ping(ByRef oPingObject As PingObject, ByVal IP As IPAddress, Optional ByRef Reply As String = "", Optional ByRef RoundTrip As Int32 = 0) As Boolean
         Dim ICMPHandle As IntPtr
         Dim iIP As Int32
         Dim sData As String
@@ -90,7 +91,7 @@ Public Class IPHlp
 
         iReplies = IcmpSendEcho(ICMPHandle, iIP, sData, sData.Length, oICMPOptions, ICMPReply, Marshal.SizeOf(ICMPReply), 30)
 
-        Reply = EvaluatePingResponse(IP, ICMPReply.Status)
+        Reply = EvaluatePingResponse(oPingObject, IP, ICMPReply.Status)
         RoundTrip = ICMPReply.RoundTripTime
 
         If ICMPReply.Status = 0 Then
@@ -104,15 +105,21 @@ Public Class IPHlp
 
     End Function
 
-    Public Shared Function EvaluatePingResponse(ByVal IP As IPAddress, ByVal PingResponse As Long) As String
+    Public Shared Function EvaluatePingResponse(ByRef oPingObject As PingObject, ByVal IP As IPAddress, ByVal PingResponse As Long) As String
         Select Case PingResponse
             'success
             Case ICMP_SUCCESS
                 EvaluatePingResponse = "Success!"
                 Dim obj As New NetworkObject()
-                obj.Name = IP.ToString
+                Console.WriteLine("Ping response from " & IP.ToString)
+                Dim sHostName As String = System.Net.Dns.GetHostEntry(IP.ToString).HostName
+                If sHostName = IP.ToString Then
+                    obj.Name = sHostName
+                Else
+                    obj.Name = sHostName & " (" & IP.ToString & ")"
+                End If
                 obj.IP = IP.ToString
-                machines.Add(obj)
+                oPingObject.cMachines.Add(obj)
             Case ICMP_STATUS_BUFFER_TO_SMALL
                 EvaluatePingResponse = "Buffer Too Small"
             Case ICMP_STATUS_DESTINATION_NET_UNREACH

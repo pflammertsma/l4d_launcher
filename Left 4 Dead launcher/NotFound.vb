@@ -9,7 +9,6 @@ Public Class NotFound
         End If
         txtPath.Focus()
         txtPath.SelectAll()
-        ' Default answer:
     End Sub
 
     Public Sub SetPath(ByVal path As String)

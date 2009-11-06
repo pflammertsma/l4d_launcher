@@ -8,17 +8,20 @@ Public Class Launcher
 
     Public Shared _listDelegate As ListDelegate
 
-    Private TargetHandlerWinNT As GetWinNTList = AddressOf NetworkProbe.Probe
-    Private TargetHandlerPing As GetPingIPs = AddressOf IPHlp.ReturnMachines
-    Private CallbackHandler As AsyncCallback = AddressOf UpdateMachinesComplete
+    Private ThreadWinNT As GetWinNTList = AddressOf NetworkProbe.Probe
+    Private ThreadPing As GetPingIPs = AddressOf IPHlp.ReturnMachines
+    Private ThreadWinNTCallback As AsyncCallback = AddressOf ThreadWinNTComplete
+    Private ThreadPingCallback As AsyncCallback = AddressOf ThreadPingComplete
 
     '*** a delegate for executing handler methods
     Delegate Function GetWinNTList() As Collection
-    Delegate Function GetPingIPs(ByVal nTimeout As Integer, ByVal nStart As Integer, ByVal nEnd As Integer) As Collection
-    Delegate Sub UpdateMachinesHandler(ByVal Machines As Collection)
+    Delegate Function GetPingIPs(ByVal nTimeout As Integer, ByVal nStart As Integer, ByVal nEnd As Integer) As PingObject
+    Delegate Sub UpdateMachinesHandler(ByVal Machines As Collection, ByVal bLast As Boolean)
     Delegate Sub UpdateProgressHandler(ByVal Value As Integer, ByVal Max As Integer)
 
+    Private nTotalIPs As Integer
     Private Refreshing As Boolean
+    Private ListEmpty As Boolean
 
     Private Sub Launcher_FormClosed(ByVal sender As Object, ByVal e As System.Windows.Forms.FormClosedEventArgs) Handles Me.FormClosed
         [Delegate].RemoveAll(_listDelegate, _listDelegate)
@@ -26,9 +29,6 @@ Public Class Launcher
     End Sub
 
     Private Sub Form1_Load(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles MyBase.Load
-        Dim sErr As String = ""
-        Dim pos1 As Integer, pos2 As Integer
-
         Try
             RefreshNetwork()
         Catch
@@ -51,6 +51,8 @@ Public Class Launcher
 
         sAppDir = ""
         Try
+            Dim sErr As String = ""
+            Dim pos1 As Integer, pos2 As Integer
             Dim sRegPath As String
             sRegPath = GetRegValue(RegistryHive.LocalMachine, "SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\Left 4 Dead", "UninstallString", sErr)
             If sErr <> "" And False Then
@@ -69,20 +71,43 @@ Public Class Launcher
 
         Me.Show()
 
+        For Each arg As String In Environment.GetCommandLineArgs()
+            Console.WriteLine(arg)
+            Dim parts As String() = arg.Split("=")
+            If parts.Length = 2 Then
+                Select Case parts(0)
+                    Case "gamedir"
+                        sAppDir = StripQuotes(parts(1))
+                        CheckAppDir(False, True)
+                End Select
+            End If
+        Next arg
+
         CheckAppDir(False, False)
 
         Dim map As String
+        Dim pos As Integer
         map = Dir(sAppDir & "left4dead\maps\*.nav")
         Do While map <> ""
-            pos1 = InStrRev(map, ".nav")
-            If pos1 > -1 Then
-                map = Mid(map, 1, pos1 - 1)
+            pos = InStrRev(map, ".nav")
+            If pos > -1 Then
+                map = Mid(map, 1, pos - 1)
                 lstMaps.Items.Add(map)
             End If
             map = Dir()
         Loop
 
     End Sub
+
+    Public Function StripQuotes(ByVal input As String) As String
+        If Mid(input, 1, 1) = """" Then
+            input = Mid(input, 2)
+        End If
+        If Mid(input, Len(input)) = """" Then
+            input = Mid(input, 1, Len(input) - 1)
+        End If
+        Return input
+    End Function
 
     Public Function GetRegKey(ByVal Hive As RegistryHive)
         Select Case Hive
@@ -134,29 +159,62 @@ Public Class Launcher
     End Function
 
     Public Function SetRegValue(ByVal Hive As RegistryHive, ByVal Key As String, ByVal ValueName As String, ByVal Value As String, Optional ByRef ErrInfo As String = "") As Boolean
-        Dim objParent As RegistryKey = GetRegKey(Hive)
-        If objParent Is Nothing Then Return False
-
-        Dim objSubkey As RegistryKey
         Dim success As Boolean = False
 
         Try
-            objSubkey = objParent.OpenSubKey(Key, True)
-            If Not objSubkey Is Nothing Then
-                objParent.CreateSubKey(Key)
-                objSubkey = objParent.OpenSubKey(Key, True)
-            End If
+            Dim objSubkey As RegistryKey = CreateRegKeys(Hive, Key, "", ErrInfo)
             'if can't be found, object is not initialized
             If Not objSubkey Is Nothing Then
                 objSubkey.SetValue(ValueName, Value)
                 success = True
+                objSubkey.Close()
+            ElseIf ErrInfo = "" Then
+                ErrInfo = "Failed opening registry key: """ & Key & """"
             End If
-
         Catch ex As Exception
             ErrInfo = ex.Message
-
         End Try
         Return success
+    End Function
+
+    Public Function CreateRegKeys(ByVal Hive As RegistryHive, ByVal Key As String, ByVal SubKey As String, ByRef ErrInfo As String) As RegistryKey
+        If SubKey = "" Then
+            Console.WriteLine("Navigating to registry subkey: """ & SubKey & """ in """ & Key & """")
+        Else
+            Console.WriteLine("Navigating to registry key """ & Key & """")
+        End If
+        Try
+            Dim objParent As RegistryKey = GetRegKey(Hive)
+            If objParent Is Nothing Then
+                ErrInfo = "Registry hive does not exist."
+                Return Nothing
+            End If
+
+            Dim objSubkey As RegistryKey = objParent.OpenSubKey(Key, True)
+            If objSubkey Is Nothing Then
+                Dim nPos As Integer = Key.LastIndexOf("\")
+                If nPos > 0 Then
+                    objSubkey = CreateRegKeys(Hive, Mid(Key, 1, nPos), Mid(Key, nPos + 2), ErrInfo)
+                    If objSubkey Is Nothing Then
+                        Return Nothing
+                    End If
+                Else
+                    ErrInfo = "Reached registry root; something went wrong with creating the registry key"
+                    Return Nothing
+                End If
+            ElseIf SubKey <> "" Then
+                Console.WriteLine("Creating registry subkey: """ & SubKey & """ in """ & Key & """")
+                objSubkey.CreateSubKey(SubKey).Close()
+            End If
+            objSubkey = objParent.OpenSubKey(Key, True)
+            If objSubkey Is Nothing Then
+                ErrInfo = "The registry key couldn't be created:" & vbCrLf & Key
+            End If
+            Return objSubkey
+        Catch ex As Exception
+            ErrInfo = ex.Message
+        End Try
+        Return Nothing
     End Function
 
     Function CheckAppDir(ByVal showError As Boolean, ByVal fixReg As Boolean) As Boolean
@@ -181,7 +239,7 @@ Public Class Launcher
                             End If
                         End If
                     Else
-                        VistaSecurity.RestartElevated()
+                        VistaSecurity.RestartElevated("gamedir=""" & sAppDir & """")
                     End If
                 End If
                 Return True
@@ -313,6 +371,7 @@ Public Class Launcher
     Sub RefreshNetwork()
         btnRefresh.Enabled = False
         Refreshing = True
+        ListEmpty = True
 
         lstNetwork.Items.Clear()
         lstNetwork.Enabled = False
@@ -322,50 +381,78 @@ Public Class Launcher
         pgbNetwork.Visible = True
         pgbNetwork.Style = ProgressBarStyle.Marquee
 
-        If True Then
-            TargetHandlerWinNT.BeginInvoke(CallbackHandler, Nothing)
+        nTotalIPs = 0
+        If False Then
+            ThreadWinNT.BeginInvoke(ThreadWinNTCallback, Nothing)
         Else
-            Dim nStep As Integer = 16
-            For i = 0 To 255 Step nStep
-                TargetHandlerPing.BeginInvoke(100, i, i + nStep, CallbackHandler, Nothing)
+            Dim nStep As Integer = 4
+            For i = 0 To 256 - nStep Step nStep
+                ThreadPing.BeginInvoke(100, i, i + nStep - 1, ThreadPingCallback, Nothing)
             Next i
         End If
     End Sub
 
-    Sub UpdateMachinesComplete(ByVal ar As IAsyncResult)
+    Sub ThreadWinNTComplete(ByVal iAsyncResult As IAsyncResult)
         Try
             Dim Machines As Collection
-            Machines = TargetHandlerPing.EndInvoke(ar)
+            Machines = ThreadWinNT.EndInvoke(iAsyncResult)
             If Me.InvokeRequired Then
                 Dim handler As New UpdateMachinesHandler(AddressOf UpdateMachines)
-                Dim args() As Object = {Machines}
+                Dim args() As Object = {Machines, True}
                 Me.BeginInvoke(handler, args)
             Else
-                UpdateMachines(Machines)
+                UpdateMachines(Machines, True)
             End If
         Catch ex As Exception
             Console.WriteLine("Error: " & ex.Message)
         End Try
     End Sub
 
-    Sub UpdateMachines(ByVal Machines As Collection)
-        lstNetwork.Items.Clear()
-        If Machines.Count = 0 Then
-            lstNetwork.Items.Add("No machines found on network.")
-        Else
-            lstNetwork.Enabled = Not chkCustomPeer.Checked
-            For Each obj In Machines
-                lstNetwork.Items.Add(obj.Name)
-            Next
+    Sub ThreadPingComplete(ByVal iAsyncResult As IAsyncResult)
+        Try
+            Dim oPingObject As PingObject
+            oPingObject = ThreadPing.EndInvoke(iAsyncResult)
+            nTotalIPs += oPingObject.nEnd - oPingObject.nStart + 1
+            If Me.InvokeRequired Then
+                Dim handler1 As New UpdateMachinesHandler(AddressOf UpdateMachines)
+                Dim args1() As Object = {oPingObject.cMachines, nTotalIPs >= 255}
+                Me.BeginInvoke(handler1, args1)
+                Dim handler2 As New UpdateProgressHandler(AddressOf UpdateProgress)
+                Dim args2() As Object = {Math.Min(nTotalIPs, 255), 255}
+                Me.BeginInvoke(handler2, args2)
+            Else
+                UpdateMachines(oPingObject.cMachines, nTotalIPs >= 255)
+            End If
+        Catch ex As Exception
+            Console.WriteLine("Error: " & ex.Message)
+        End Try
+    End Sub
+
+    Sub UpdateMachines(ByVal Machines As Collection, ByVal bLast As Boolean)
+        If ListEmpty And Machines.Count > 0 Then
+            lstNetwork.Items.Clear()
+            ListEmpty = False
         End If
-        pgbNetwork.Visible = False
-        btnRefresh.Enabled = True
-        Refreshing = False
+        If lstNetwork.Items.Count = 0 Then
+            If bLast Then
+                lstNetwork.Items.Add("No machines found on network.")
+            End If
+        End If
+        For Each obj In Machines
+            lstNetwork.Items.Add(obj.Name)
+        Next
+        If bLast Then
+            lstNetwork.Enabled = Not chkCustomPeer.Checked
+            pgbNetwork.Visible = False
+            btnRefresh.Enabled = True
+            Refreshing = False
+        End If
     End Sub
 
     Sub UpdateProgress(ByVal Value As Integer, ByVal Max As Integer)
         pgbNetwork.Maximum = Max
         pgbNetwork.Value = Value
+        pgbNetwork.Style = ProgressBarStyle.Blocks
     End Sub
 
     Private Sub btnRefresh_Click(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles btnRefresh.Click

@@ -280,7 +280,7 @@ Partial Class Launcher
         '
         'lstMaps
         '
-        Me.lstMaps.ColumnWidth = 150
+        Me.lstMaps.ColumnWidth = 175
         Me.lstMaps.FormattingEnabled = True
         Me.lstMaps.IntegralHeight = False
         Me.lstMaps.Location = New System.Drawing.Point(6, 19)

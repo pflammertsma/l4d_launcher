@@ -65,6 +65,7 @@
     <Import Include="System.Windows.Forms" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="PingObject.vb" />
     <Compile Include="IPHlp.vb" />
     <Compile Include="VistaSecurity.vb" />
     <Compile Include="NotFound.Designer.vb">

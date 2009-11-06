@@ -25,11 +25,12 @@ Module VistaSecurity
     End Sub
 
     ' Restart the current process with administrator credentials
-    Public Sub RestartElevated()
+    Public Sub RestartElevated(Optional ByVal Arguments As String = "")
         Dim startInfo As ProcessStartInfo = New ProcessStartInfo()
         startInfo.UseShellExecute = True
         startInfo.WorkingDirectory = Environment.CurrentDirectory
         startInfo.FileName = Application.ExecutablePath
+        startInfo.Arguments = Arguments
         startInfo.Verb = "runas"
         Try
             Dim p As Process = Process.Start(startInfo)
