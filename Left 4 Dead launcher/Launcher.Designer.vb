@@ -445,7 +445,7 @@ Partial Class Launcher
         Me.lblVersion.AutoSize = True
         Me.lblVersion.BackColor = System.Drawing.Color.Black
         Me.lblVersion.Font = New System.Drawing.Font("Microsoft Sans Serif", 7.0!, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, CType(0, Byte))
-        Me.lblVersion.ForeColor = System.Drawing.Color.White
+        Me.lblVersion.ForeColor = System.Drawing.Color.Silver
         Me.lblVersion.Location = New System.Drawing.Point(4, 4)
         Me.lblVersion.Name = "lblVersion"
         Me.lblVersion.Size = New System.Drawing.Size(92, 13)

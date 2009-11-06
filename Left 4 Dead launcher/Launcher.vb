@@ -8,9 +8,15 @@ Public Class Launcher
 
     Public Shared _listDelegate As ListDelegate
 
-    Private TargetHandler As GetListHandler = AddressOf NetworkProbe.Probe
+    Private TargetHandlerWinNT As GetWinNTList = AddressOf NetworkProbe.Probe
+    Private TargetHandlerPing As GetPingIPs = AddressOf IPHlp.ReturnMachines
+    Private CallbackHandler As AsyncCallback = AddressOf UpdateMachinesComplete
 
-    Private CallbackHandler As AsyncCallback = AddressOf NetworkProbeComplete
+    '*** a delegate for executing handler methods
+    Delegate Function GetWinNTList() As Collection
+    Delegate Function GetPingIPs(ByVal nTimeout As Integer, ByVal nStart As Integer, ByVal nEnd As Integer) As Collection
+    Delegate Sub UpdateMachinesHandler(ByVal Machines As Collection)
+    Delegate Sub UpdateProgressHandler(ByVal Value As Integer, ByVal Max As Integer)
 
     Private Refreshing As Boolean
 
@@ -316,13 +322,20 @@ Public Class Launcher
         pgbNetwork.Visible = True
         pgbNetwork.Style = ProgressBarStyle.Marquee
 
-        TargetHandler.BeginInvoke("CA", CallbackHandler, Nothing)
+        If True Then
+            TargetHandlerWinNT.BeginInvoke(CallbackHandler, Nothing)
+        Else
+            Dim nStep As Integer = 16
+            For i = 0 To 255 Step nStep
+                TargetHandlerPing.BeginInvoke(100, i, i + nStep, CallbackHandler, Nothing)
+            Next i
+        End If
     End Sub
 
-    Sub NetworkProbeComplete(ByVal ar As IAsyncResult)
+    Sub UpdateMachinesComplete(ByVal ar As IAsyncResult)
         Try
             Dim Machines As Collection
-            machines = TargetHandler.EndInvoke(ar)
+            Machines = TargetHandlerPing.EndInvoke(ar)
             If Me.InvokeRequired Then
                 Dim handler As New UpdateMachinesHandler(AddressOf UpdateMachines)
                 Dim args() As Object = {Machines}
@@ -334,11 +347,6 @@ Public Class Launcher
             Console.WriteLine("Error: " & ex.Message)
         End Try
     End Sub
-
-    '*** a delegate for executing handler methods
-    Delegate Function GetListHandler(ByVal State As String) As Collection
-    Delegate Sub UpdateMachinesHandler(ByVal Machines As Collection)
-    Delegate Sub UpdateProgressHandler(ByVal Value As Integer, ByVal Max As Integer)
 
     Sub UpdateMachines(ByVal Machines As Collection)
         lstNetwork.Items.Clear()

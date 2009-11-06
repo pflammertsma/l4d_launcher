@@ -7,7 +7,7 @@ Class NetworkProbe
 
     Private Shared machines As New Collection()
 
-    Shared Function Probe(ByVal State As String) As Collection
+    Shared Function Probe() As Collection
         'ShowNetworkInterfaces()
         ShowNetworkMachines_NT()
         'ShowNetworkMachines_MO()
@@ -26,18 +26,34 @@ Class NetworkProbe
         Next
     End Sub
 
+    Public Shared Sub ShowNetworkMachines_NT2()
+        Dim root As New DirectoryEntry("WinNT:")
+        Dim parent As DirectoryServices.DirectoryEntries
+        parent = root.Children
+        Dim d As DirectoryEntries = parent
+        For Each complist As DirectoryEntry In parent
+            For Each c As DirectoryEntry In complist.Children
+                If (c.Name <> "Schema") Then
+                    Console.WriteLine(c.Name)
+                End If
+            Next
+        Next
+    End Sub
+
     Public Shared Sub ShowNetworkMachines_NT()
         Dim childEntry As DirectoryEntry
         Dim ParentEntry As New DirectoryEntry
         Try
-            ParentEntry.Path = "WinNT:"
+            ParentEntry.Path = "WinNT://WORKGROUP"
             For Each childEntry In ParentEntry.Children
+                Console.WriteLine(childEntry.SchemaClassName)
                 Select Case childEntry.SchemaClassName
                     Case "Domain"
                         Console.WriteLine(childEntry.Name)
                         Dim SubChildEntry As DirectoryEntry
                         Dim SubParentEntry As New DirectoryEntry
                         SubParentEntry.Path = "WinNT://" & childEntry.Name
+                        Continue For
                         Dim index As Integer = 0
                         For Each SubChildEntry In SubParentEntry.Children
                             'Dim handler As New Launcher.UpdateProgressHandler(AddressOf Launcher.UpdateProgress)
@@ -71,6 +87,7 @@ Class NetworkProbe
                 End Select
             Next
         Catch Excep As Exception
+            Console.WriteLine("Could not populate the network.")
             MsgBox("Could not populate network.", MsgBoxStyle.Exclamation)
             End
         Finally
