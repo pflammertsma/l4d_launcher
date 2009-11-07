@@ -43,15 +43,19 @@ Public Class IPHlp
         Dim sLocalhost As String = IPHlp.Localhost(3)
         Dim sIP As String
         For i = nStart To nEnd
+            sIP = sLocalhost & "." & CStr(i)
+            'IPHlp.Ping(oPingObject, sIP, Nothing, reply, nTimeout)
             Try
-                sIP = sLocalhost & "." & CStr(i)
-                'IPHlp.Ping(oPingObject, sIP, Nothing, reply, nTimeout)
                 Dim IP As IPAddress = Dns.GetHostByName(sIP).AddressList(0)
                 Dim connector = New PortConnect
-                If connector.Connect(oPingObject, IP, nPort, nTimeout) Then
-                    AddMachine(oPingObject, IP)
-                End If
-            Catch ex As Exception
+                For p = nPort To nPort ' + 30
+                    If connector.Connect(oPingObject, IP, p, nTimeout) Then
+                        AddMachine(oPingObject, IP)
+                        Exit For
+                    End If
+                Next p
+            Catch
+                Continue For
             End Try
         Next i
         Return oPingObject

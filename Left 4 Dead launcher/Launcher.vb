@@ -20,11 +20,15 @@ Public Class Launcher
     Delegate Sub UpdateProgressHandler(ByVal Value As Integer, ByVal Max As Integer)
 
     Private nDefaultPort As Integer = 27015
-    Private nDefaultTimeout As Integer = 100
+    Private nDefaultTimeout As Integer = 2000
     Dim nPort As Integer = nDefaultPort
     Dim nTimeout As Integer = nDefaultTimeout
 
     Private nTotalIPs As Integer
+    Private nMaxIPs As Integer
+    Private nFirstIP As Integer = 0
+    Private nLastIP As Integer = 256
+    Private nStepIP As Integer = 1
     Private Refreshing As Boolean
     Private ListEmpty As Boolean
     Private cMachines As New Collection
@@ -80,7 +84,6 @@ Public Class Launcher
         Me.Show()
 
         For Each arg As String In Environment.GetCommandLineArgs()
-            Console.WriteLine(arg)
             Dim parts As String() = arg.Split("=")
             If parts.Length = 2 Then
                 Select Case parts(0)
@@ -347,7 +350,7 @@ Public Class Launcher
                 sCommandLine &= " +z_difficulty impossible"
             End If
             If chkMultiplayer.Checked Then
-                sCommandLine &= " +sv_lan 1 +sv_allow_lobby_connect_only 0"
+                sCommandLine &= " +sv_lan 1 +sv_allow_lobby_connect_only 0 +hostport " & nPort
             End If
             If lstMaps.SelectedItems.Count > 0 Then
                 sCommandLine &= " +map " & map
@@ -392,12 +395,13 @@ Public Class Launcher
         nTimeout = CInt(txtTimeout.Text)
         nPort = CInt(txtPort.Text)
         nTotalIPs = 0
+        nMaxIPs = nLastIP - nFirstIP
         If False Then
             ThreadWinNT.BeginInvoke(ThreadWinNTCallback, Nothing)
         Else
-            Dim nStep As Integer = 2
-            For i = 0 To 256 - nStep Step nStep
-                ThreadPing.BeginInvoke(nTimeout, nPort, i, i + nStep - 1, ThreadPingCallback, Nothing)
+            For i = nFirstIP To nLastIP Step nStepIP
+                Dim nThisStep As Integer = Math.Min(i + nStepIP - 1, nLastIP)
+                ThreadPing.BeginInvoke(nTimeout, nPort, i, nThisStep, ThreadPingCallback, Nothing)
             Next i
         End If
     End Sub
@@ -426,13 +430,13 @@ Public Class Launcher
                 nTotalIPs += oPingObject.nEnd - oPingObject.nStart + 1
                 If Me.InvokeRequired Then
                     Dim handler1 As New UpdateMachinesHandler(AddressOf UpdateMachines)
-                    Dim args1() As Object = {oPingObject.cMachines, nTotalIPs >= 255}
+                    Dim args1() As Object = {oPingObject.cMachines, nTotalIPs >= nMaxIPs}
                     Me.BeginInvoke(handler1, args1)
                     Dim handler2 As New UpdateProgressHandler(AddressOf UpdateProgress)
-                    Dim args2() As Object = {Math.Min(nTotalIPs, 255), 255}
+                    Dim args2() As Object = {Math.Min(nTotalIPs, nMaxIPs), nMaxIPs}
                     Me.BeginInvoke(handler2, args2)
                 Else
-                    UpdateMachines(oPingObject.cMachines, nTotalIPs >= 255)
+                    UpdateMachines(oPingObject.cMachines, nTotalIPs >= nMaxIPs)
                 End If
             End SyncLock
         Catch ex As Exception
