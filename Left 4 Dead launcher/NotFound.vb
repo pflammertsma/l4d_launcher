@@ -2,11 +2,14 @@
 
 Public Class NotFound
 
+    Public NoExit As Boolean
+
     Private Sub Dialog1_Load(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles MyBase.Load
         lblInfo.Text = "Left 4 Dead could not be located via the Windows Uninstall list. This means that not only can you not use this Launcher, but you are also unlikely to be able to uninstall the game. This can automatically be fixed by entering the path to the game below."
         If Not VistaSecurity.IsAdmin Then
             VistaSecurity.AddShieldToButton(btnFix)
         End If
+        btnExit.Text = IIf(NoExit, "C&ancel", "&Exit")
         txtPath.Focus()
         txtPath.SelectAll()
     End Sub

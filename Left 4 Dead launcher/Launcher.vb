@@ -1,8 +1,16 @@
 ﻿Imports Microsoft.Win32
+Imports System.IO
+
+' -game left4dead -console -novid +sv_lan 1 +sv_allow_lobby_connect_only 0 +z_difficulty normal +map l4d_hospital01_apartment
+
+' HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\Left 4 Dead
+' "C:\Windows\Left 4 Dead\uninstall.exe" "/U:C:\Program Files\Left 4 Dead\Uninstall\uninstall.xml"
 
 Public Class Launcher
 
-    Dim sAppDir As String
+    Private sAppDir As String = ""
+    Private sGameDir As String = ""
+    Private bNeedFix As Boolean
 
     Delegate Sub ListDelegate(ByVal count As Integer)
 
@@ -24,6 +32,9 @@ Public Class Launcher
     Dim nPort As Integer = nDefaultPort
     Dim nTimeout As Integer = nDefaultTimeout
 
+    Private cControls As New Collection()
+    Private settingIniFile As String = "prefs.ini"
+
     Private nTotalIPs As Integer
     Private nMaxIPs As Integer
     Private nFirstIP As Integer = 0
@@ -34,6 +45,7 @@ Public Class Launcher
     Private cMachines As New Collection
 
     Private Sub Launcher_FormClosed(ByVal sender As Object, ByVal e As System.Windows.Forms.FormClosedEventArgs) Handles Me.FormClosed
+        Me.Hide()
         [Delegate].RemoveAll(_listDelegate, _listDelegate)
         End
     End Sub
@@ -49,19 +61,35 @@ Public Class Launcher
             lblVersion.Visible = False
         End Try
 
+        sAppDir = AppDomain.CurrentDomain.BaseDirectory
+        If sAppDir.Substring(sAppDir.Length - 1) <> "\" Then
+            sAppDir &= "\"
+        End If
+
         cboPlayer.SelectedIndex = 0
         cboGameType.SelectedIndex = 0
-        Call chkPlayer_CheckedChanged(Nothing, Nothing)
-        Call chkCustomPeer_CheckedChanged(Nothing, Nothing)
         txtPort.Text = nDefaultPort
         txtTimeout.Text = nDefaultTimeout
+
+        ToolTip.SetToolTip(chkNameINI, "Writes the ""PlayerName"" entry into the L4D ""rev.ini"" file")
+
+        sGameDir = ""
+
+        GetControls(Me)
+        LoadSettings()
+
+        Call chkName_CheckedChanged(Nothing, Nothing)
+        Call chkPlayer_CheckedChanged(Nothing, Nothing)
+        Call chkCustomPeer_CheckedChanged(Nothing, Nothing)
+        lblPort.Text = "Default: " & nDefaultPort
+        lblTimeout.Text = "Recommended: " & nDefaultTimeout
 
         Try
             RefreshNetwork()
         Catch
         End Try
 
-        sAppDir = ""
+        bNeedFix = True
         Try
             Dim sErr As String = ""
             Dim pos1 As Integer, pos2 As Integer
@@ -75,11 +103,14 @@ Public Class Launcher
                 pos1 += 3
                 pos2 = InStrRev(sRegPath, "\Uninstall\uninstall.xml")
                 If pos2 > pos1 Then
-                    sAppDir = Mid(sRegPath, pos1, pos2 - pos1 + 1)
+                    bNeedFix = False
+                    sGameDir = Mid(sRegPath, pos1, pos2 - pos1 + 1)
                 End If
             End If
         Catch
         End Try
+
+        btnFix.Visible = bNeedFix
 
         Me.Show()
 
@@ -88,17 +119,17 @@ Public Class Launcher
             If parts.Length = 2 Then
                 Select Case parts(0)
                     Case "gamedir"
-                        sAppDir = StripQuotes(parts(1))
-                        CheckAppDir(False, True)
+                        sGameDir = StripQuotes(parts(1))
+                        CheckGameDir(False, True)
                 End Select
             End If
         Next arg
 
-        CheckAppDir(False, False)
+        CheckGameDir(False, False)
 
         Dim map As String
         Dim pos As Integer
-        map = Dir(sAppDir & "left4dead\maps\*.nav")
+        map = Dir(sGameDir & "left4dead\maps\*.nav")
         Do While map <> ""
             pos = InStrRev(map, ".nav")
             If pos > -1 Then
@@ -228,53 +259,62 @@ Public Class Launcher
         Return Nothing
     End Function
 
-    Function CheckAppDir(ByVal showError As Boolean, ByVal fixReg As Boolean) As Boolean
-        If sAppDir.Length > 1 Then
-            If sAppDir.Substring(sAppDir.Length - 1) <> "\" Then
-                sAppDir &= "\"
+    Function CheckGameDir(ByVal showError As Boolean, ByVal fixReg As Boolean) As Boolean
+        If sGameDir.Length > 1 Then
+            If sGameDir.Substring(sGameDir.Length - 1) <> "\" Then
+                sGameDir &= "\"
             End If
         End If
-        sAppDir = sAppDir.Replace("\\", "\")
-        Dim file As String = Dir(sAppDir & "\*.exe")
-        While file <> ""
-            If file = "left4dead.exe" Then
-                If fixReg Then
-                    If VistaSecurity.IsAdmin Then
-                        Dim str As String = """C:\Windows\Left 4 Dead\uninstall.exe"" ""/U:" & sAppDir & "\Uninstall\uninstall.xml"""
-                        Dim sErr As String = ""
-                        If Not SetRegValue(RegistryHive.LocalMachine, "SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\Left 4 Dead", "UninstallString", str, sErr) Then
-                            If sErr <> "" Then
-                                MsgBox("Something went wrong while storing the registry information. You might want to try again running this application in administrator mode." & vbCrLf & vbCrLf & sErr, MsgBoxStyle.Critical)
-                            Else
-                                MsgBox("Something went wrong while storing the registry information. You might want to try again running this application in administrator mode.", MsgBoxStyle.Critical)
-                            End If
-                        End If
+        sGameDir = sGameDir.Replace("\\", "\")
+        Dim exeFile As New FileInfo(sGameDir & "left4dead.exe")
+        If exeFile.Exists() Then
+            If fixReg Then
+                If VistaSecurity.IsAdmin Then
+                    Dim str As String = """C:\Windows\Left 4 Dead\uninstall.exe"" ""/U:" & sGameDir & "\Uninstall\uninstall.xml"""
+                    Dim sErr As String = ""
+                    If SetRegValue(RegistryHive.LocalMachine, "SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\Left 4 Dead", "UninstallString", str, sErr) Then
+                        bNeedFix = False
                     Else
-                        VistaSecurity.RestartElevated("gamedir=""" & sAppDir & """")
+                        If sErr <> "" Then
+                            MsgBox("Something went wrong while storing the registry information. You might want to try again running this application in administrator mode." & vbCrLf & vbCrLf & sErr, MsgBoxStyle.Critical)
+                        Else
+                            MsgBox("Something went wrong while storing the registry information. You might want to try again running this application in administrator mode.", MsgBoxStyle.Critical)
+                        End If
                     End If
+                Else
+                    VistaSecurity.RestartElevated("gamedir=""" & sGameDir & """")
                 End If
-                Return True
             End If
-            file = Dir()
-        End While
-        If sAppDir = "" Then
-            sAppDir = "C:\Program Files\Left 4 Dead\"
+            btnFix.Visible = bNeedFix
+            Return True
+        End If
+        btnFix.Visible = bNeedFix
+        If sGameDir = "" Then
+            sGameDir = "C:\Program Files\Left 4 Dead\"
         End If
         If showError Then
             MsgBox("The specified path does not contain ""left4dead.exe"".", MsgBoxStyle.Exclamation)
         End If
-        NotFound.SetPath(sAppDir)
+        NotFound.SetPath(sGameDir)
+        NotFound.NoExit = False
         Dim res As DialogResult = NotFound.ShowDialog(Me)
         If res <> Windows.Forms.DialogResult.Cancel Then
-            sAppDir = NotFound.GetPath()
+            sGameDir = NotFound.GetPath()
             If res = Windows.Forms.DialogResult.Retry Then
-                CheckAppDir(True, True)
+                CheckGameDir(True, True)
             Else
-                CheckAppDir(True, False)
+                CheckGameDir(True, False)
             End If
         Else
             Me.Close()
         End If
+    End Function
+
+    Function IsLocalhost(ByVal sIP As String) As Boolean
+        If sIP = "localhost" Or sIP = IPHlp.Localhost Then
+            Return True
+        End If
+        Return False
     End Function
 
     Sub Launch(ByVal mode As Integer)
@@ -283,11 +323,32 @@ Public Class Launcher
         If chkConsole.Checked Then
             sCommandLine &= " -console"
         End If
-        If chkVideo.Checked Then
+        If Not chkVideo.Checked Then
             sCommandLine &= " -novid"
         End If
         If txtCommandLine.TextLength > 0 Then
             sCommandLine &= " " & txtCommandLine.Text
+        End If
+        If txtName.Enabled Then
+            sCommandLine &= " +name """ & txtName.Text & """"
+            If chkNameINI.Checked Then
+                Dim revIniFile As String = "rev.ini"
+                Dim iniFile As New FileInfo(sGameDir & revIniFile)
+                If iniFile.Exists() Then
+                    Dim revIni As New IniFile(sGameDir & revIniFile)
+                    Dim sName As String = revIni.GetString("steamclient", "PlayerName", "")
+                    If sName <> txtName.Text Then
+                        Dim iniBakFile As New FileInfo(sGameDir & revIniFile & ".bak")
+                        If Not iniBakFile.Exists() Then
+                            FileCopy(sGameDir & revIniFile, sGameDir & revIniFile & ".bak")
+                        End If
+                        revIni.WriteString("steamclient", "PlayerName", txtName.Text)
+                    End If
+                Else
+                    MsgBox("The INI file required to set the player name is missing:" & vbCrLf & vbCrLf & "    " & sGameDir & revIniFile, MsgBoxStyle.Exclamation)
+                    Exit Sub
+                End If
+            End If
         End If
         If cboPlayer.Enabled Then
             sCommandLine &= " +team_desired ""Survivor " & cboPlayer.Text & """"
@@ -298,17 +359,27 @@ Public Class Launcher
                     MsgBox("You didn't specify a custom peer to connect to. Please enter a machine name.", MsgBoxStyle.Exclamation)
                     Exit Sub
                 End If
+                If IsLocalhost(txtPeer.Text) Then
+                    If MsgBox("Are you sure you want to connect to your own machine?", MsgBoxStyle.Question + MsgBoxStyle.YesNo) = MsgBoxResult.No Then
+                        Exit Sub
+                    End If
+                End If
                 sCommandLine &= " +connect " & txtPeer.Text
-            ElseIf Refreshing Then
+            ElseIf False And Refreshing Then
                 MsgBox("Please wait for the list of network peers to finish populating and make a selection, or specify a custom machine name.", MsgBoxStyle.Exclamation)
                 Exit Sub
-            ElseIf Not lstNetwork.Enabled Or lstNetwork.Items.Count = 0 Then
+            ElseIf Not lstNetwork.Enabled Or ListEmpty Then
                 MsgBox("The list of network peers is empty. Refresh it and select one, or specify a custom machine name.", MsgBoxStyle.Exclamation)
                 Exit Sub
             ElseIf lstNetwork.SelectedIndex = -1 Then
                 MsgBox("Please make a selection from the list of network peers or specify a custom machine name.", MsgBoxStyle.Exclamation)
                 Exit Sub
             Else
+                If IsLocalhost(cMachines.Item(lstNetwork.SelectedIndex + 1)) Then
+                    If MsgBox("Are you sure you want to connect to your own machine?", MsgBoxStyle.Question + MsgBoxStyle.YesNo) = MsgBoxResult.No Then
+                        Exit Sub
+                    End If
+                End If
                 sCommandLine &= " +connect " & cMachines.Item(lstNetwork.SelectedIndex + 1)
             End If
         Else
@@ -356,7 +427,7 @@ Public Class Launcher
                 sCommandLine &= " +map " & map
             End If
         End If
-        Dim sExec As String = sAppDir & "left4dead.exe -game left4dead" & sCommandLine
+        Dim sExec As String = sGameDir & "left4dead.exe -game left4dead" & sCommandLine
         If chkClipboard.Checked Then
             Clipboard.SetText(sExec)
             MsgBox("The execution command has been copied to the clipboard:" & vbCrLf & vbCrLf & sExec, MsgBoxStyle.Information)
@@ -366,6 +437,7 @@ Public Class Launcher
     End Sub
 
     Private Sub btnLaunch_Click(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles btnLaunch.Click
+        SaveSettings()
         If tabs.SelectedIndex = 0 Then
             Launch(1)
         ElseIf tabs.SelectedIndex = 1 Then
@@ -376,6 +448,7 @@ Public Class Launcher
     End Sub
 
     Private Sub btnCancel_Click(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles btnCancel.Click
+        SaveSettings()
         Me.Close()
     End Sub
 
@@ -475,6 +548,64 @@ Public Class Launcher
         pgbNetwork.Style = ProgressBarStyle.Blocks
     End Sub
 
+    Sub GetControls(ByRef cParent As Control)
+        For Each cControl As Control In cParent.Controls
+            cControls.Add(cControl)
+            Console.WriteLine(cControl.Name)
+            If cControl.HasChildren Then
+                GetControls(cControl)
+            End If
+        Next
+    End Sub
+
+    Sub LoadSettings()
+        Dim settingIni As New IniFile(sAppDir & settingIniFile)
+        Dim sDir As String = settingIni.GetString("l4d", "gamedir", Nothing)
+        If Not sDir Is Nothing Then
+            sGameDir = sDir
+        End If
+        For Each cControl In cControls
+            LoadSettingIni(settingIni, cControl)
+        Next
+    End Sub
+
+    Sub SaveSettings()
+        Dim settingIni As New IniFile(sAppDir & settingIniFile)
+        settingIni.WriteString("l4d", "gamedir", sGameDir)
+        For Each cControl In cControls
+            SaveSettingIni(settingIni, cControl)
+        Next
+        'SaveSettingIni(settingIni, chkName)
+        'SaveSettingIni(settingIni, txtName)
+        'SaveSettingIni(settingIni, chkNameINI)
+    End Sub
+
+    Sub LoadSettingIni(ByRef settingIni As IniFile, ByRef cControl As Control)
+        If TypeOf cControl Is CheckBox Then
+            Dim cCheck As CheckBox = cControl
+            cCheck.Checked = settingIni.GetInteger("controls", cControl.Name, cCheck.Checked)
+        ElseIf TypeOf cControl Is TextBox Then
+            Dim cText As TextBox = cControl
+            cText.Text = settingIni.GetString("controls", cControl.Name, cText.Text)
+        ElseIf TypeOf cControl Is ComboBox Then
+            Dim cCombo As ComboBox = cControl
+            cCombo.SelectedIndex = settingIni.GetInteger("controls", cControl.Name, cCombo.SelectedIndex)
+        End If
+    End Sub
+
+    Sub SaveSettingIni(ByRef settingIni As IniFile, ByRef cControl As Control)
+        If TypeOf cControl Is CheckBox Then
+            Dim cCheck As CheckBox = cControl
+            settingIni.WriteInteger("controls", cControl.Name, IIf(cCheck.Checked, 1, 0))
+        ElseIf TypeOf cControl Is TextBox Then
+            Dim cText As TextBox = cControl
+            settingIni.WriteString("controls", cControl.Name, cText.Text)
+        ElseIf TypeOf cControl Is ComboBox Then
+            Dim cCombo As ComboBox = cControl
+            settingIni.WriteInteger("controls", cControl.Name, cCombo.SelectedIndex)
+        End If
+    End Sub
+
     Private Sub btnRefresh_Click(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles btnRefresh.Click
         RefreshNetwork()
     End Sub
@@ -487,10 +618,25 @@ Public Class Launcher
     Private Sub chkPlayer_CheckedChanged(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles chkPlayer.CheckedChanged
         cboPlayer.Enabled = chkPlayer.Checked
     End Sub
+
+    Private Sub chkName_CheckedChanged(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles chkName.CheckedChanged
+        txtName.Enabled = chkName.Checked
+        chkNameINI.Enabled = chkName.Checked
+    End Sub
+
+    Private Sub btnFix_Click(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles btnFix.Click
+        NotFound.SetPath(sGameDir)
+        NotFound.NoExit = True
+        Dim res As DialogResult = NotFound.ShowDialog(Me)
+        If res <> Windows.Forms.DialogResult.Cancel Then
+            sGameDir = NotFound.GetPath()
+            If res = Windows.Forms.DialogResult.Retry Then
+                CheckGameDir(True, True)
+            Else
+                CheckGameDir(True, False)
+            End If
+        Else
+            Exit Sub
+        End If
+    End Sub
 End Class
-
-' -game left4dead -console -novid +sv_lan 1 +sv_allow_lobby_connect_only 0 +z_difficulty normal +map l4d_hospital01_apartment
-
-' HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\Left 4 Dead
-' "C:\Windows\Left 4 Dead\uninstall.exe" "/U:C:\Program Files\Left 4 Dead\Uninstall\uninstall.xml"
-

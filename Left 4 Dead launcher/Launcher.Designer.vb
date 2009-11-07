@@ -24,8 +24,10 @@ Partial Class Launcher
     Private Sub InitializeComponent()
         Me.components = New System.ComponentModel.Container
         Dim resources As System.ComponentModel.ComponentResourceManager = New System.ComponentModel.ComponentResourceManager(GetType(Launcher))
-        Me.btnCancel = New System.Windows.Forms.Button
-        Me.GroupBox1 = New System.Windows.Forms.GroupBox
+        Me.grpGeneral = New System.Windows.Forms.GroupBox
+        Me.chkNameINI = New System.Windows.Forms.CheckBox
+        Me.txtName = New System.Windows.Forms.TextBox
+        Me.chkName = New System.Windows.Forms.CheckBox
         Me.cboPlayer = New System.Windows.Forms.ComboBox
         Me.chkPlayer = New System.Windows.Forms.CheckBox
         Me.chkVideo = New System.Windows.Forms.CheckBox
@@ -36,71 +38,94 @@ Partial Class Launcher
         Me.Label2 = New System.Windows.Forms.Label
         Me.cboGameType = New System.Windows.Forms.ComboBox
         Me.chkMultiplayer = New System.Windows.Forms.CheckBox
-        Me.GroupBox2 = New System.Windows.Forms.GroupBox
+        Me.grpDifficulty = New System.Windows.Forms.GroupBox
         Me.optNormal = New System.Windows.Forms.RadioButton
         Me.optImpossible = New System.Windows.Forms.RadioButton
         Me.optHard = New System.Windows.Forms.RadioButton
         Me.optEasy = New System.Windows.Forms.RadioButton
-        Me.GroupBox3 = New System.Windows.Forms.GroupBox
+        Me.grpMap = New System.Windows.Forms.GroupBox
         Me.lstMaps = New System.Windows.Forms.ListBox
         Me.TabPage2 = New System.Windows.Forms.TabPage
-        Me.GroupBox4 = New System.Windows.Forms.GroupBox
+        Me.grpNetwork = New System.Windows.Forms.GroupBox
         Me.pgbNetwork = New System.Windows.Forms.ProgressBar
         Me.txtPeer = New System.Windows.Forms.TextBox
         Me.chkCustomPeer = New System.Windows.Forms.CheckBox
         Me.btnRefresh = New System.Windows.Forms.Button
         Me.lstNetwork = New System.Windows.Forms.ListBox
         Me.TabPage3 = New System.Windows.Forms.TabPage
+        Me.grpNetworkScanning = New System.Windows.Forms.GroupBox
+        Me.lblTimeout = New System.Windows.Forms.Label
+        Me.lblPort = New System.Windows.Forms.Label
+        Me.txtTimeout = New System.Windows.Forms.TextBox
+        Me.txtPort = New System.Windows.Forms.TextBox
+        Me.Label5 = New System.Windows.Forms.Label
+        Me.Label4 = New System.Windows.Forms.Label
         Me.chkClipboard = New System.Windows.Forms.CheckBox
         Me.txtCommandLine = New System.Windows.Forms.TextBox
         Me.Label3 = New System.Windows.Forms.Label
         Me.ImageList = New System.Windows.Forms.ImageList(Me.components)
+        Me.lblVersion = New System.Windows.Forms.Label
+        Me.ToolTip = New System.Windows.Forms.ToolTip(Me.components)
+        Me.btnCancel = New System.Windows.Forms.Button
+        Me.btnFix = New System.Windows.Forms.Button
         Me.picBanner = New System.Windows.Forms.PictureBox
         Me.PictureBox1 = New System.Windows.Forms.PictureBox
         Me.btnLaunch = New System.Windows.Forms.Button
-        Me.lblVersion = New System.Windows.Forms.Label
-        Me.Label4 = New System.Windows.Forms.Label
-        Me.txtPort = New System.Windows.Forms.TextBox
-        Me.Label5 = New System.Windows.Forms.Label
-        Me.txtTimeout = New System.Windows.Forms.TextBox
-        Me.GroupBox1.SuspendLayout()
+        Me.grpGeneral.SuspendLayout()
         Me.tabs.SuspendLayout()
         Me.TabPage1.SuspendLayout()
-        Me.GroupBox2.SuspendLayout()
-        Me.GroupBox3.SuspendLayout()
+        Me.grpDifficulty.SuspendLayout()
+        Me.grpMap.SuspendLayout()
         Me.TabPage2.SuspendLayout()
-        Me.GroupBox4.SuspendLayout()
+        Me.grpNetwork.SuspendLayout()
         Me.TabPage3.SuspendLayout()
+        Me.grpNetworkScanning.SuspendLayout()
         CType(Me.picBanner, System.ComponentModel.ISupportInitialize).BeginInit()
         CType(Me.PictureBox1, System.ComponentModel.ISupportInitialize).BeginInit()
         Me.SuspendLayout()
         '
-        'btnCancel
+        'grpGeneral
         '
-        Me.btnCancel.DialogResult = System.Windows.Forms.DialogResult.Cancel
-        Me.btnCancel.Image = Global.L4D_launcher.My.Resources.Resources.close_glow_16
-        Me.btnCancel.ImageAlign = System.Drawing.ContentAlignment.MiddleLeft
-        Me.btnCancel.Location = New System.Drawing.Point(370, 464)
-        Me.btnCancel.Name = "btnCancel"
-        Me.btnCancel.Padding = New System.Windows.Forms.Padding(4, 0, 8, 0)
-        Me.btnCancel.Size = New System.Drawing.Size(67, 30)
-        Me.btnCancel.TabIndex = 10
-        Me.btnCancel.Text = "E&xit"
-        Me.btnCancel.TextAlign = System.Drawing.ContentAlignment.MiddleRight
-        Me.btnCancel.UseVisualStyleBackColor = True
+        Me.grpGeneral.Controls.Add(Me.chkNameINI)
+        Me.grpGeneral.Controls.Add(Me.txtName)
+        Me.grpGeneral.Controls.Add(Me.chkName)
+        Me.grpGeneral.Controls.Add(Me.cboPlayer)
+        Me.grpGeneral.Controls.Add(Me.chkPlayer)
+        Me.grpGeneral.Controls.Add(Me.chkVideo)
+        Me.grpGeneral.Controls.Add(Me.chkConsole)
+        Me.grpGeneral.Location = New System.Drawing.Point(71, 147)
+        Me.grpGeneral.Name = "grpGeneral"
+        Me.grpGeneral.Size = New System.Drawing.Size(366, 69)
+        Me.grpGeneral.TabIndex = 0
+        Me.grpGeneral.TabStop = False
+        Me.grpGeneral.Text = "General options"
         '
-        'GroupBox1
+        'chkNameINI
         '
-        Me.GroupBox1.Controls.Add(Me.cboPlayer)
-        Me.GroupBox1.Controls.Add(Me.chkPlayer)
-        Me.GroupBox1.Controls.Add(Me.chkVideo)
-        Me.GroupBox1.Controls.Add(Me.chkConsole)
-        Me.GroupBox1.Location = New System.Drawing.Point(71, 143)
-        Me.GroupBox1.Name = "GroupBox1"
-        Me.GroupBox1.Size = New System.Drawing.Size(366, 69)
-        Me.GroupBox1.TabIndex = 0
-        Me.GroupBox1.TabStop = False
-        Me.GroupBox1.Text = "General options"
+        Me.chkNameINI.AutoSize = True
+        Me.chkNameINI.Location = New System.Drawing.Point(182, 18)
+        Me.chkNameINI.Name = "chkNameINI"
+        Me.chkNameINI.Size = New System.Drawing.Size(51, 17)
+        Me.chkNameINI.TabIndex = 2
+        Me.chkNameINI.Text = "in INI"
+        Me.chkNameINI.UseVisualStyleBackColor = True
+        '
+        'txtName
+        '
+        Me.txtName.Location = New System.Drawing.Point(89, 16)
+        Me.txtName.Name = "txtName"
+        Me.txtName.Size = New System.Drawing.Size(87, 20)
+        Me.txtName.TabIndex = 1
+        '
+        'chkName
+        '
+        Me.chkName.AutoSize = True
+        Me.chkName.Location = New System.Drawing.Point(6, 19)
+        Me.chkName.Name = "chkName"
+        Me.chkName.Size = New System.Drawing.Size(77, 17)
+        Me.chkName.TabIndex = 0
+        Me.chkName.Text = "&Nickname:"
+        Me.chkName.UseVisualStyleBackColor = True
         '
         'cboPlayer
         '
@@ -109,8 +134,8 @@ Partial Class Launcher
         Me.cboPlayer.Items.AddRange(New Object() {"Bill", "Francis", "Louis", "Zoey"})
         Me.cboPlayer.Location = New System.Drawing.Point(115, 40)
         Me.cboPlayer.Name = "cboPlayer"
-        Me.cboPlayer.Size = New System.Drawing.Size(91, 21)
-        Me.cboPlayer.TabIndex = 7
+        Me.cboPlayer.Size = New System.Drawing.Size(112, 21)
+        Me.cboPlayer.TabIndex = 4
         '
         'chkPlayer
         '
@@ -118,20 +143,18 @@ Partial Class Launcher
         Me.chkPlayer.Location = New System.Drawing.Point(6, 42)
         Me.chkPlayer.Name = "chkPlayer"
         Me.chkPlayer.Size = New System.Drawing.Size(103, 17)
-        Me.chkPlayer.TabIndex = 2
+        Me.chkPlayer.TabIndex = 3
         Me.chkPlayer.Text = "&Preferred player:"
         Me.chkPlayer.UseVisualStyleBackColor = True
         '
         'chkVideo
         '
         Me.chkVideo.AutoSize = True
-        Me.chkVideo.Checked = True
-        Me.chkVideo.CheckState = System.Windows.Forms.CheckState.Checked
-        Me.chkVideo.Location = New System.Drawing.Point(176, 19)
+        Me.chkVideo.Location = New System.Drawing.Point(243, 42)
         Me.chkVideo.Name = "chkVideo"
-        Me.chkVideo.Size = New System.Drawing.Size(113, 17)
-        Me.chkVideo.TabIndex = 1
-        Me.chkVideo.Text = "Disable intro &video"
+        Me.chkVideo.Size = New System.Drawing.Size(112, 17)
+        Me.chkVideo.TabIndex = 6
+        Me.chkVideo.Text = "Display intro &video"
         Me.chkVideo.UseVisualStyleBackColor = True
         '
         'chkConsole
@@ -139,10 +162,10 @@ Partial Class Launcher
         Me.chkConsole.AutoSize = True
         Me.chkConsole.Checked = True
         Me.chkConsole.CheckState = System.Windows.Forms.CheckState.Checked
-        Me.chkConsole.Location = New System.Drawing.Point(6, 19)
+        Me.chkConsole.Location = New System.Drawing.Point(243, 19)
         Me.chkConsole.Name = "chkConsole"
         Me.chkConsole.Size = New System.Drawing.Size(99, 17)
-        Me.chkConsole.TabIndex = 0
+        Me.chkConsole.TabIndex = 5
         Me.chkConsole.Text = "Enable c&onsole"
         Me.chkConsole.UseVisualStyleBackColor = True
         '
@@ -163,19 +186,19 @@ Partial Class Launcher
         Me.tabs.Controls.Add(Me.TabPage2)
         Me.tabs.Controls.Add(Me.TabPage3)
         Me.tabs.ImageList = Me.ImageList
-        Me.tabs.Location = New System.Drawing.Point(71, 218)
+        Me.tabs.Location = New System.Drawing.Point(71, 222)
         Me.tabs.Name = "tabs"
         Me.tabs.SelectedIndex = 0
         Me.tabs.Size = New System.Drawing.Size(366, 240)
-        Me.tabs.TabIndex = 4
+        Me.tabs.TabIndex = 1
         '
         'TabPage1
         '
         Me.TabPage1.Controls.Add(Me.Label2)
         Me.TabPage1.Controls.Add(Me.cboGameType)
         Me.TabPage1.Controls.Add(Me.chkMultiplayer)
-        Me.TabPage1.Controls.Add(Me.GroupBox2)
-        Me.TabPage1.Controls.Add(Me.GroupBox3)
+        Me.TabPage1.Controls.Add(Me.grpDifficulty)
+        Me.TabPage1.Controls.Add(Me.grpMap)
         Me.TabPage1.ImageIndex = 0
         Me.TabPage1.Location = New System.Drawing.Point(4, 23)
         Me.TabPage1.Name = "TabPage1"
@@ -217,24 +240,24 @@ Partial Class Launcher
         Me.chkMultiplayer.Text = "Enable multiplayer mode"
         Me.chkMultiplayer.UseVisualStyleBackColor = True
         '
-        'GroupBox2
+        'grpDifficulty
         '
-        Me.GroupBox2.Controls.Add(Me.optNormal)
-        Me.GroupBox2.Controls.Add(Me.optImpossible)
-        Me.GroupBox2.Controls.Add(Me.optHard)
-        Me.GroupBox2.Controls.Add(Me.optEasy)
-        Me.GroupBox2.Location = New System.Drawing.Point(6, 6)
-        Me.GroupBox2.Name = "GroupBox2"
-        Me.GroupBox2.Size = New System.Drawing.Size(346, 42)
-        Me.GroupBox2.TabIndex = 3
-        Me.GroupBox2.TabStop = False
-        Me.GroupBox2.Text = "Difficulty"
+        Me.grpDifficulty.Controls.Add(Me.optNormal)
+        Me.grpDifficulty.Controls.Add(Me.optImpossible)
+        Me.grpDifficulty.Controls.Add(Me.optHard)
+        Me.grpDifficulty.Controls.Add(Me.optEasy)
+        Me.grpDifficulty.Location = New System.Drawing.Point(6, 6)
+        Me.grpDifficulty.Name = "grpDifficulty"
+        Me.grpDifficulty.Size = New System.Drawing.Size(346, 42)
+        Me.grpDifficulty.TabIndex = 3
+        Me.grpDifficulty.TabStop = False
+        Me.grpDifficulty.Text = "Difficulty"
         '
         'optNormal
         '
         Me.optNormal.AutoSize = True
         Me.optNormal.Checked = True
-        Me.optNormal.Location = New System.Drawing.Point(81, 19)
+        Me.optNormal.Location = New System.Drawing.Point(85, 17)
         Me.optNormal.Name = "optNormal"
         Me.optNormal.Size = New System.Drawing.Size(58, 17)
         Me.optNormal.TabIndex = 3
@@ -245,7 +268,7 @@ Partial Class Launcher
         'optImpossible
         '
         Me.optImpossible.AutoSize = True
-        Me.optImpossible.Location = New System.Drawing.Point(241, 19)
+        Me.optImpossible.Location = New System.Drawing.Point(249, 17)
         Me.optImpossible.Name = "optImpossible"
         Me.optImpossible.Size = New System.Drawing.Size(74, 17)
         Me.optImpossible.TabIndex = 5
@@ -255,7 +278,7 @@ Partial Class Launcher
         'optHard
         '
         Me.optHard.AutoSize = True
-        Me.optHard.Location = New System.Drawing.Point(166, 19)
+        Me.optHard.Location = New System.Drawing.Point(172, 17)
         Me.optHard.Name = "optHard"
         Me.optHard.Size = New System.Drawing.Size(48, 17)
         Me.optHard.TabIndex = 4
@@ -265,22 +288,22 @@ Partial Class Launcher
         'optEasy
         '
         Me.optEasy.AutoSize = True
-        Me.optEasy.Location = New System.Drawing.Point(6, 19)
+        Me.optEasy.Location = New System.Drawing.Point(8, 17)
         Me.optEasy.Name = "optEasy"
         Me.optEasy.Size = New System.Drawing.Size(48, 17)
         Me.optEasy.TabIndex = 2
         Me.optEasy.Text = "&Easy"
         Me.optEasy.UseVisualStyleBackColor = True
         '
-        'GroupBox3
+        'grpMap
         '
-        Me.GroupBox3.Controls.Add(Me.lstMaps)
-        Me.GroupBox3.Location = New System.Drawing.Point(6, 54)
-        Me.GroupBox3.Name = "GroupBox3"
-        Me.GroupBox3.Size = New System.Drawing.Size(346, 129)
-        Me.GroupBox3.TabIndex = 4
-        Me.GroupBox3.TabStop = False
-        Me.GroupBox3.Text = "Map / Episode"
+        Me.grpMap.Controls.Add(Me.lstMaps)
+        Me.grpMap.Location = New System.Drawing.Point(6, 54)
+        Me.grpMap.Name = "grpMap"
+        Me.grpMap.Size = New System.Drawing.Size(346, 129)
+        Me.grpMap.TabIndex = 4
+        Me.grpMap.TabStop = False
+        Me.grpMap.Text = "Map / Episode"
         '
         'lstMaps
         '
@@ -295,7 +318,7 @@ Partial Class Launcher
         '
         'TabPage2
         '
-        Me.TabPage2.Controls.Add(Me.GroupBox4)
+        Me.TabPage2.Controls.Add(Me.grpNetwork)
         Me.TabPage2.ImageIndex = 1
         Me.TabPage2.Location = New System.Drawing.Point(4, 23)
         Me.TabPage2.Name = "TabPage2"
@@ -305,19 +328,19 @@ Partial Class Launcher
         Me.TabPage2.Text = "Join"
         Me.TabPage2.UseVisualStyleBackColor = True
         '
-        'GroupBox4
+        'grpNetwork
         '
-        Me.GroupBox4.Controls.Add(Me.pgbNetwork)
-        Me.GroupBox4.Controls.Add(Me.txtPeer)
-        Me.GroupBox4.Controls.Add(Me.chkCustomPeer)
-        Me.GroupBox4.Controls.Add(Me.btnRefresh)
-        Me.GroupBox4.Controls.Add(Me.lstNetwork)
-        Me.GroupBox4.Location = New System.Drawing.Point(6, 6)
-        Me.GroupBox4.Name = "GroupBox4"
-        Me.GroupBox4.Size = New System.Drawing.Size(346, 198)
-        Me.GroupBox4.TabIndex = 5
-        Me.GroupBox4.TabStop = False
-        Me.GroupBox4.Text = "Network peers"
+        Me.grpNetwork.Controls.Add(Me.pgbNetwork)
+        Me.grpNetwork.Controls.Add(Me.txtPeer)
+        Me.grpNetwork.Controls.Add(Me.chkCustomPeer)
+        Me.grpNetwork.Controls.Add(Me.btnRefresh)
+        Me.grpNetwork.Controls.Add(Me.lstNetwork)
+        Me.grpNetwork.Location = New System.Drawing.Point(6, 6)
+        Me.grpNetwork.Name = "grpNetwork"
+        Me.grpNetwork.Size = New System.Drawing.Size(346, 198)
+        Me.grpNetwork.TabIndex = 5
+        Me.grpNetwork.TabStop = False
+        Me.grpNetwork.Text = "Network peers"
         '
         'pgbNetwork
         '
@@ -366,10 +389,7 @@ Partial Class Launcher
         '
         'TabPage3
         '
-        Me.TabPage3.Controls.Add(Me.txtTimeout)
-        Me.TabPage3.Controls.Add(Me.txtPort)
-        Me.TabPage3.Controls.Add(Me.Label5)
-        Me.TabPage3.Controls.Add(Me.Label4)
+        Me.TabPage3.Controls.Add(Me.grpNetworkScanning)
         Me.TabPage3.Controls.Add(Me.chkClipboard)
         Me.TabPage3.Controls.Add(Me.txtCommandLine)
         Me.TabPage3.Controls.Add(Me.Label3)
@@ -380,6 +400,73 @@ Partial Class Launcher
         Me.TabPage3.TabIndex = 2
         Me.TabPage3.Text = "Additional parameters"
         Me.TabPage3.UseVisualStyleBackColor = True
+        '
+        'grpNetworkScanning
+        '
+        Me.grpNetworkScanning.Controls.Add(Me.lblTimeout)
+        Me.grpNetworkScanning.Controls.Add(Me.lblPort)
+        Me.grpNetworkScanning.Controls.Add(Me.txtTimeout)
+        Me.grpNetworkScanning.Controls.Add(Me.txtPort)
+        Me.grpNetworkScanning.Controls.Add(Me.Label5)
+        Me.grpNetworkScanning.Controls.Add(Me.Label4)
+        Me.grpNetworkScanning.Location = New System.Drawing.Point(6, 76)
+        Me.grpNetworkScanning.Name = "grpNetworkScanning"
+        Me.grpNetworkScanning.Size = New System.Drawing.Size(346, 131)
+        Me.grpNetworkScanning.TabIndex = 7
+        Me.grpNetworkScanning.TabStop = False
+        Me.grpNetworkScanning.Text = "Network peer scanning"
+        '
+        'lblTimeout
+        '
+        Me.lblTimeout.AutoSize = True
+        Me.lblTimeout.ForeColor = System.Drawing.SystemColors.GrayText
+        Me.lblTimeout.Location = New System.Drawing.Point(154, 47)
+        Me.lblTimeout.Name = "lblTimeout"
+        Me.lblTimeout.Size = New System.Drawing.Size(91, 13)
+        Me.lblTimeout.TabIndex = 12
+        Me.lblTimeout.Text = "Recommended: 0"
+        '
+        'lblPort
+        '
+        Me.lblPort.AutoSize = True
+        Me.lblPort.ForeColor = System.Drawing.SystemColors.GrayText
+        Me.lblPort.Location = New System.Drawing.Point(154, 22)
+        Me.lblPort.Name = "lblPort"
+        Me.lblPort.Size = New System.Drawing.Size(53, 13)
+        Me.lblPort.TabIndex = 11
+        Me.lblPort.Text = "Default: 0"
+        '
+        'txtTimeout
+        '
+        Me.txtTimeout.Location = New System.Drawing.Point(84, 44)
+        Me.txtTimeout.Name = "txtTimeout"
+        Me.txtTimeout.Size = New System.Drawing.Size(64, 20)
+        Me.txtTimeout.TabIndex = 10
+        '
+        'txtPort
+        '
+        Me.txtPort.Location = New System.Drawing.Point(84, 19)
+        Me.txtPort.Name = "txtPort"
+        Me.txtPort.Size = New System.Drawing.Size(64, 20)
+        Me.txtPort.TabIndex = 8
+        '
+        'Label5
+        '
+        Me.Label5.AutoSize = True
+        Me.Label5.Location = New System.Drawing.Point(8, 47)
+        Me.Label5.Name = "Label5"
+        Me.Label5.Size = New System.Drawing.Size(70, 13)
+        Me.Label5.TabIndex = 9
+        Me.Label5.Text = "Timeout (ms):"
+        '
+        'Label4
+        '
+        Me.Label4.AutoSize = True
+        Me.Label4.Location = New System.Drawing.Point(8, 22)
+        Me.Label4.Name = "Label4"
+        Me.Label4.Size = New System.Drawing.Size(68, 13)
+        Me.Label4.TabIndex = 7
+        Me.Label4.Text = "TCP/IP Port:"
         '
         'chkClipboard
         '
@@ -413,6 +500,48 @@ Partial Class Launcher
         Me.ImageList.Images.SetKeyName(0, "server_network.ico")
         Me.ImageList.Images.SetKeyName(1, "client_network.ico")
         '
+        'lblVersion
+        '
+        Me.lblVersion.Anchor = CType((System.Windows.Forms.AnchorStyles.Top Or System.Windows.Forms.AnchorStyles.Right), System.Windows.Forms.AnchorStyles)
+        Me.lblVersion.AutoSize = True
+        Me.lblVersion.BackColor = System.Drawing.Color.Black
+        Me.lblVersion.Font = New System.Drawing.Font("Microsoft Sans Serif", 7.0!, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, CType(0, Byte))
+        Me.lblVersion.ForeColor = System.Drawing.Color.Silver
+        Me.lblVersion.Location = New System.Drawing.Point(4, 4)
+        Me.lblVersion.Name = "lblVersion"
+        Me.lblVersion.Size = New System.Drawing.Size(92, 13)
+        Me.lblVersion.TabIndex = 13
+        Me.lblVersion.Text = "L4D Launcher 1.0"
+        Me.lblVersion.TextAlign = System.Drawing.ContentAlignment.TopRight
+        '
+        'btnCancel
+        '
+        Me.btnCancel.DialogResult = System.Windows.Forms.DialogResult.Cancel
+        Me.btnCancel.Image = Global.L4D_launcher.My.Resources.Resources.close_glow_16
+        Me.btnCancel.ImageAlign = System.Drawing.ContentAlignment.MiddleLeft
+        Me.btnCancel.Location = New System.Drawing.Point(370, 468)
+        Me.btnCancel.Name = "btnCancel"
+        Me.btnCancel.Padding = New System.Windows.Forms.Padding(4, 0, 8, 0)
+        Me.btnCancel.Size = New System.Drawing.Size(67, 30)
+        Me.btnCancel.TabIndex = 4
+        Me.btnCancel.Text = "E&xit"
+        Me.btnCancel.TextAlign = System.Drawing.ContentAlignment.MiddleRight
+        Me.btnCancel.UseVisualStyleBackColor = True
+        '
+        'btnFix
+        '
+        Me.btnFix.Image = Global.L4D_launcher.My.Resources.Resources.fix_glow_16
+        Me.btnFix.ImageAlign = System.Drawing.ContentAlignment.MiddleLeft
+        Me.btnFix.Location = New System.Drawing.Point(237, 468)
+        Me.btnFix.Name = "btnFix"
+        Me.btnFix.Padding = New System.Windows.Forms.Padding(4, 0, 8, 0)
+        Me.btnFix.Size = New System.Drawing.Size(127, 30)
+        Me.btnFix.TabIndex = 3
+        Me.btnFix.Text = "&Fix uninstall path"
+        Me.btnFix.TextAlign = System.Drawing.ContentAlignment.MiddleRight
+        Me.btnFix.UseVisualStyleBackColor = True
+        Me.btnFix.Visible = False
+        '
         'picBanner
         '
         Me.picBanner.Dock = System.Windows.Forms.DockStyle.Top
@@ -438,72 +567,27 @@ Partial Class Launcher
         '
         Me.btnLaunch.Image = Global.L4D_launcher.My.Resources.Resources.accepted_glow_16
         Me.btnLaunch.ImageAlign = System.Drawing.ContentAlignment.MiddleLeft
-        Me.btnLaunch.Location = New System.Drawing.Point(71, 464)
+        Me.btnLaunch.Location = New System.Drawing.Point(71, 468)
         Me.btnLaunch.Name = "btnLaunch"
         Me.btnLaunch.Padding = New System.Windows.Forms.Padding(4, 0, 8, 0)
         Me.btnLaunch.Size = New System.Drawing.Size(85, 30)
-        Me.btnLaunch.TabIndex = 7
+        Me.btnLaunch.TabIndex = 2
         Me.btnLaunch.Text = "&Launch"
         Me.btnLaunch.TextAlign = System.Drawing.ContentAlignment.MiddleRight
         Me.btnLaunch.UseVisualStyleBackColor = True
-        '
-        'lblVersion
-        '
-        Me.lblVersion.Anchor = CType((System.Windows.Forms.AnchorStyles.Top Or System.Windows.Forms.AnchorStyles.Right), System.Windows.Forms.AnchorStyles)
-        Me.lblVersion.AutoSize = True
-        Me.lblVersion.BackColor = System.Drawing.Color.Black
-        Me.lblVersion.Font = New System.Drawing.Font("Microsoft Sans Serif", 7.0!, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, CType(0, Byte))
-        Me.lblVersion.ForeColor = System.Drawing.Color.Silver
-        Me.lblVersion.Location = New System.Drawing.Point(4, 4)
-        Me.lblVersion.Name = "lblVersion"
-        Me.lblVersion.Size = New System.Drawing.Size(92, 13)
-        Me.lblVersion.TabIndex = 13
-        Me.lblVersion.Text = "L4D Launcher 1.0"
-        Me.lblVersion.TextAlign = System.Drawing.ContentAlignment.TopRight
-        '
-        'Label4
-        '
-        Me.Label4.AutoSize = True
-        Me.Label4.Location = New System.Drawing.Point(6, 82)
-        Me.Label4.Name = "Label4"
-        Me.Label4.Size = New System.Drawing.Size(65, 13)
-        Me.Label4.TabIndex = 3
-        Me.Label4.Text = "TCP/IP Port"
-        '
-        'txtPort
-        '
-        Me.txtPort.Location = New System.Drawing.Point(77, 79)
-        Me.txtPort.Name = "txtPort"
-        Me.txtPort.Size = New System.Drawing.Size(64, 20)
-        Me.txtPort.TabIndex = 4
-        '
-        'Label5
-        '
-        Me.Label5.AutoSize = True
-        Me.Label5.Location = New System.Drawing.Point(6, 107)
-        Me.Label5.Name = "Label5"
-        Me.Label5.Size = New System.Drawing.Size(45, 13)
-        Me.Label5.TabIndex = 3
-        Me.Label5.Text = "Timeout"
-        '
-        'txtTimeout
-        '
-        Me.txtTimeout.Location = New System.Drawing.Point(77, 104)
-        Me.txtTimeout.Name = "txtTimeout"
-        Me.txtTimeout.Size = New System.Drawing.Size(64, 20)
-        Me.txtTimeout.TabIndex = 4
         '
         'Launcher
         '
         Me.AutoScaleDimensions = New System.Drawing.SizeF(6.0!, 13.0!)
         Me.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font
         Me.CancelButton = Me.btnCancel
-        Me.ClientSize = New System.Drawing.Size(449, 505)
+        Me.ClientSize = New System.Drawing.Size(449, 508)
+        Me.Controls.Add(Me.btnFix)
         Me.Controls.Add(Me.lblVersion)
         Me.Controls.Add(Me.picBanner)
         Me.Controls.Add(Me.tabs)
         Me.Controls.Add(Me.Label1)
-        Me.Controls.Add(Me.GroupBox1)
+        Me.Controls.Add(Me.grpGeneral)
         Me.Controls.Add(Me.PictureBox1)
         Me.Controls.Add(Me.btnCancel)
         Me.Controls.Add(Me.btnLaunch)
@@ -512,19 +596,21 @@ Partial Class Launcher
         Me.MaximizeBox = False
         Me.Name = "Launcher"
         Me.Text = "L4D Launcher"
-        Me.GroupBox1.ResumeLayout(False)
-        Me.GroupBox1.PerformLayout()
+        Me.grpGeneral.ResumeLayout(False)
+        Me.grpGeneral.PerformLayout()
         Me.tabs.ResumeLayout(False)
         Me.TabPage1.ResumeLayout(False)
         Me.TabPage1.PerformLayout()
-        Me.GroupBox2.ResumeLayout(False)
-        Me.GroupBox2.PerformLayout()
-        Me.GroupBox3.ResumeLayout(False)
+        Me.grpDifficulty.ResumeLayout(False)
+        Me.grpDifficulty.PerformLayout()
+        Me.grpMap.ResumeLayout(False)
         Me.TabPage2.ResumeLayout(False)
-        Me.GroupBox4.ResumeLayout(False)
-        Me.GroupBox4.PerformLayout()
+        Me.grpNetwork.ResumeLayout(False)
+        Me.grpNetwork.PerformLayout()
         Me.TabPage3.ResumeLayout(False)
         Me.TabPage3.PerformLayout()
+        Me.grpNetworkScanning.ResumeLayout(False)
+        Me.grpNetworkScanning.PerformLayout()
         CType(Me.picBanner, System.ComponentModel.ISupportInitialize).EndInit()
         CType(Me.PictureBox1, System.ComponentModel.ISupportInitialize).EndInit()
         Me.ResumeLayout(False)
@@ -534,23 +620,23 @@ Partial Class Launcher
     Friend WithEvents btnLaunch As System.Windows.Forms.Button
     Friend WithEvents btnCancel As System.Windows.Forms.Button
     Friend WithEvents PictureBox1 As System.Windows.Forms.PictureBox
-    Friend WithEvents GroupBox1 As System.Windows.Forms.GroupBox
+    Friend WithEvents grpGeneral As System.Windows.Forms.GroupBox
     Friend WithEvents Label1 As System.Windows.Forms.Label
     Friend WithEvents chkVideo As System.Windows.Forms.CheckBox
     Friend WithEvents chkConsole As System.Windows.Forms.CheckBox
     Friend WithEvents tabs As System.Windows.Forms.TabControl
     Friend WithEvents TabPage1 As System.Windows.Forms.TabPage
-    Friend WithEvents GroupBox2 As System.Windows.Forms.GroupBox
+    Friend WithEvents grpDifficulty As System.Windows.Forms.GroupBox
     Friend WithEvents optNormal As System.Windows.Forms.RadioButton
     Friend WithEvents optImpossible As System.Windows.Forms.RadioButton
     Friend WithEvents optHard As System.Windows.Forms.RadioButton
     Friend WithEvents optEasy As System.Windows.Forms.RadioButton
-    Friend WithEvents GroupBox3 As System.Windows.Forms.GroupBox
+    Friend WithEvents grpMap As System.Windows.Forms.GroupBox
     Friend WithEvents lstMaps As System.Windows.Forms.ListBox
     Friend WithEvents TabPage2 As System.Windows.Forms.TabPage
     Friend WithEvents ImageList As System.Windows.Forms.ImageList
     Friend WithEvents chkMultiplayer As System.Windows.Forms.CheckBox
-    Friend WithEvents GroupBox4 As System.Windows.Forms.GroupBox
+    Friend WithEvents grpNetwork As System.Windows.Forms.GroupBox
     Friend WithEvents lstNetwork As System.Windows.Forms.ListBox
     Friend WithEvents btnRefresh As System.Windows.Forms.Button
     Friend WithEvents txtPeer As System.Windows.Forms.TextBox
@@ -566,9 +652,17 @@ Partial Class Launcher
     Friend WithEvents cboPlayer As System.Windows.Forms.ComboBox
     Friend WithEvents picBanner As System.Windows.Forms.PictureBox
     Friend WithEvents lblVersion As System.Windows.Forms.Label
-    Friend WithEvents Label4 As System.Windows.Forms.Label
+    Friend WithEvents txtName As System.Windows.Forms.TextBox
+    Friend WithEvents chkName As System.Windows.Forms.CheckBox
+    Friend WithEvents chkNameINI As System.Windows.Forms.CheckBox
+    Friend WithEvents grpNetworkScanning As System.Windows.Forms.GroupBox
     Friend WithEvents txtTimeout As System.Windows.Forms.TextBox
     Friend WithEvents txtPort As System.Windows.Forms.TextBox
     Friend WithEvents Label5 As System.Windows.Forms.Label
+    Friend WithEvents Label4 As System.Windows.Forms.Label
+    Friend WithEvents lblTimeout As System.Windows.Forms.Label
+    Friend WithEvents lblPort As System.Windows.Forms.Label
+    Friend WithEvents ToolTip As System.Windows.Forms.ToolTip
+    Friend WithEvents btnFix As System.Windows.Forms.Button
 
 End Class

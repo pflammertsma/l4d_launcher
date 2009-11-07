@@ -64,12 +64,16 @@ Public Class IPHlp
     Public Shared Sub AddMachine(ByRef oPingObject As PingObject, ByVal IP As IPAddress)
         Dim obj As New NetworkObject()
         Dim sHostName As String = System.Net.Dns.GetHostEntry(IP.ToString).HostName
-        If sHostName = IP.ToString Then
+        Dim sIP As String = IP.ToString
+        If sHostName = sIP Then
             obj.Name = sHostName
         Else
-            obj.Name = sHostName & " (" & IP.ToString & ")"
+            If sIP = IPHlp.Localhost Then
+                sIP = "localhost"
+            End If
+            obj.Name = sHostName & " (" & sIP & ")"
         End If
-        obj.IP = IP.ToString
+        obj.IP = sIP
         oPingObject.cMachines.Add(obj)
     End Sub
 

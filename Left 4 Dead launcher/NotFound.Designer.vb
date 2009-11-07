@@ -61,7 +61,7 @@ Partial Class NotFound
         Me.btnFix.Name = "btnFix"
         Me.btnFix.Size = New System.Drawing.Size(87, 23)
         Me.btnFix.TabIndex = 1
-        Me.btnFix.Text = "Fix"
+        Me.btnFix.Text = "&Fix"
         '
         'btnExit
         '
@@ -71,7 +71,7 @@ Partial Class NotFound
         Me.btnExit.Name = "btnExit"
         Me.btnExit.Size = New System.Drawing.Size(89, 23)
         Me.btnExit.TabIndex = 3
-        Me.btnExit.Text = "Exit"
+        Me.btnExit.Text = "&Exit"
         '
         'btnContinue
         '
@@ -80,7 +80,7 @@ Partial Class NotFound
         Me.btnContinue.Name = "btnContinue"
         Me.btnContinue.Size = New System.Drawing.Size(87, 23)
         Me.btnContinue.TabIndex = 2
-        Me.btnContinue.Text = "Continue"
+        Me.btnContinue.Text = "&Continue"
         '
         'PictureBox1
         '
