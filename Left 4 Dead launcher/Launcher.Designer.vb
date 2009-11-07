@@ -59,6 +59,10 @@ Partial Class Launcher
         Me.PictureBox1 = New System.Windows.Forms.PictureBox
         Me.btnLaunch = New System.Windows.Forms.Button
         Me.lblVersion = New System.Windows.Forms.Label
+        Me.Label4 = New System.Windows.Forms.Label
+        Me.txtPort = New System.Windows.Forms.TextBox
+        Me.Label5 = New System.Windows.Forms.Label
+        Me.txtTimeout = New System.Windows.Forms.TextBox
         Me.GroupBox1.SuspendLayout()
         Me.tabs.SuspendLayout()
         Me.TabPage1.SuspendLayout()
@@ -362,6 +366,10 @@ Partial Class Launcher
         '
         'TabPage3
         '
+        Me.TabPage3.Controls.Add(Me.txtTimeout)
+        Me.TabPage3.Controls.Add(Me.txtPort)
+        Me.TabPage3.Controls.Add(Me.Label5)
+        Me.TabPage3.Controls.Add(Me.Label4)
         Me.TabPage3.Controls.Add(Me.chkClipboard)
         Me.TabPage3.Controls.Add(Me.txtCommandLine)
         Me.TabPage3.Controls.Add(Me.Label3)
@@ -453,6 +461,38 @@ Partial Class Launcher
         Me.lblVersion.Text = "L4D Launcher 1.0"
         Me.lblVersion.TextAlign = System.Drawing.ContentAlignment.TopRight
         '
+        'Label4
+        '
+        Me.Label4.AutoSize = True
+        Me.Label4.Location = New System.Drawing.Point(6, 82)
+        Me.Label4.Name = "Label4"
+        Me.Label4.Size = New System.Drawing.Size(65, 13)
+        Me.Label4.TabIndex = 3
+        Me.Label4.Text = "TCP/IP Port"
+        '
+        'txtPort
+        '
+        Me.txtPort.Location = New System.Drawing.Point(77, 79)
+        Me.txtPort.Name = "txtPort"
+        Me.txtPort.Size = New System.Drawing.Size(64, 20)
+        Me.txtPort.TabIndex = 4
+        '
+        'Label5
+        '
+        Me.Label5.AutoSize = True
+        Me.Label5.Location = New System.Drawing.Point(6, 107)
+        Me.Label5.Name = "Label5"
+        Me.Label5.Size = New System.Drawing.Size(45, 13)
+        Me.Label5.TabIndex = 3
+        Me.Label5.Text = "Timeout"
+        '
+        'txtTimeout
+        '
+        Me.txtTimeout.Location = New System.Drawing.Point(77, 104)
+        Me.txtTimeout.Name = "txtTimeout"
+        Me.txtTimeout.Size = New System.Drawing.Size(64, 20)
+        Me.txtTimeout.TabIndex = 4
+        '
         'Launcher
         '
         Me.AutoScaleDimensions = New System.Drawing.SizeF(6.0!, 13.0!)
@@ -526,5 +566,9 @@ Partial Class Launcher
     Friend WithEvents cboPlayer As System.Windows.Forms.ComboBox
     Friend WithEvents picBanner As System.Windows.Forms.PictureBox
     Friend WithEvents lblVersion As System.Windows.Forms.Label
+    Friend WithEvents Label4 As System.Windows.Forms.Label
+    Friend WithEvents txtTimeout As System.Windows.Forms.TextBox
+    Friend WithEvents txtPort As System.Windows.Forms.TextBox
+    Friend WithEvents Label5 As System.Windows.Forms.Label
 
 End Class

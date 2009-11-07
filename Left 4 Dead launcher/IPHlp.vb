@@ -35,7 +35,7 @@ Public Class IPHlp
     Private Const ICMP_STATUS_GENERAL_FAILURE As Int32 = 11050
     'General Failure
 
-    Public Shared Function ReturnMachines(ByVal nTimeout As Integer, ByVal nStart As Integer, ByVal nEnd As Integer) As PingObject
+    Public Shared Function ReturnMachines(ByVal nTimeout As Integer, ByVal nPort As Integer, ByVal nStart As Integer, ByVal nEnd As Integer) As PingObject
         Dim oPingObject As New PingObject
         oPingObject.nStart = nStart
         oPingObject.nEnd = nEnd
@@ -45,14 +45,29 @@ Public Class IPHlp
         For i = nStart To nEnd
             Try
                 sIP = sLocalhost & "." & CStr(i)
-                'Console.WriteLine(sIP)
-                IPHlp.Ping(oPingObject, sIP, Nothing, reply, nTimeout)
-                'Console.WriteLine(reply)
-            Catch
+                'IPHlp.Ping(oPingObject, sIP, Nothing, reply, nTimeout)
+                Dim IP As IPAddress = Dns.GetHostByName(sIP).AddressList(0)
+                Dim connector = New PortConnect
+                If connector.Connect(oPingObject, IP, nPort, nTimeout) Then
+                    AddMachine(oPingObject, IP)
+                End If
+            Catch ex As Exception
             End Try
         Next i
         Return oPingObject
     End Function
+
+    Public Shared Sub AddMachine(ByRef oPingObject As PingObject, ByVal IP As IPAddress)
+        Dim obj As New NetworkObject()
+        Dim sHostName As String = System.Net.Dns.GetHostEntry(IP.ToString).HostName
+        If sHostName = IP.ToString Then
+            obj.Name = sHostName
+        Else
+            obj.Name = sHostName & " (" & IP.ToString & ")"
+        End If
+        obj.IP = IP.ToString
+        oPingObject.cMachines.Add(obj)
+    End Sub
 
     Public Shared Function Localhost(Optional ByVal nBlocks As Integer = 4) As String
         Dim LocalHostName As String
@@ -110,16 +125,7 @@ Public Class IPHlp
             'success
             Case ICMP_SUCCESS
                 EvaluatePingResponse = "Success!"
-                Dim obj As New NetworkObject()
-                Console.WriteLine("Ping response from " & IP.ToString)
-                Dim sHostName As String = System.Net.Dns.GetHostEntry(IP.ToString).HostName
-                If sHostName = IP.ToString Then
-                    obj.Name = sHostName
-                Else
-                    obj.Name = sHostName & " (" & IP.ToString & ")"
-                End If
-                obj.IP = IP.ToString
-                oPingObject.cMachines.Add(obj)
+                AddMachine(oPingObject, IP)
             Case ICMP_STATUS_BUFFER_TO_SMALL
                 EvaluatePingResponse = "Buffer Too Small"
             Case ICMP_STATUS_DESTINATION_NET_UNREACH

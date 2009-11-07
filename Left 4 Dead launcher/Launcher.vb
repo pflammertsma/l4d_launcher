@@ -15,13 +15,19 @@ Public Class Launcher
 
     '*** a delegate for executing handler methods
     Delegate Function GetWinNTList() As Collection
-    Delegate Function GetPingIPs(ByVal nTimeout As Integer, ByVal nStart As Integer, ByVal nEnd As Integer) As PingObject
+    Delegate Function GetPingIPs(ByVal nTimeout As Integer, ByVal nPort As Integer, ByVal nStart As Integer, ByVal nEnd As Integer) As PingObject
     Delegate Sub UpdateMachinesHandler(ByVal Machines As Collection, ByVal bLast As Boolean)
     Delegate Sub UpdateProgressHandler(ByVal Value As Integer, ByVal Max As Integer)
+
+    Private nDefaultPort As Integer = 27015
+    Private nDefaultTimeout As Integer = 100
+    Dim nPort As Integer = nDefaultPort
+    Dim nTimeout As Integer = nDefaultTimeout
 
     Private nTotalIPs As Integer
     Private Refreshing As Boolean
     Private ListEmpty As Boolean
+    Private cMachines As New Collection
 
     Private Sub Launcher_FormClosed(ByVal sender As Object, ByVal e As System.Windows.Forms.FormClosedEventArgs) Handles Me.FormClosed
         [Delegate].RemoveAll(_listDelegate, _listDelegate)
@@ -29,11 +35,6 @@ Public Class Launcher
     End Sub
 
     Private Sub Form1_Load(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles MyBase.Load
-        Try
-            RefreshNetwork()
-        Catch
-        End Try
-
         Try
             Dim iBuildInfo As FileVersionInfo = FileVersionInfo.GetVersionInfo(Application.ExecutablePath)
             lblVersion.Text = "v" & iBuildInfo.ProductVersion
@@ -48,6 +49,13 @@ Public Class Launcher
         cboGameType.SelectedIndex = 0
         Call chkPlayer_CheckedChanged(Nothing, Nothing)
         Call chkCustomPeer_CheckedChanged(Nothing, Nothing)
+        txtPort.Text = nDefaultPort
+        txtTimeout.Text = nDefaultTimeout
+
+        Try
+            RefreshNetwork()
+        Catch
+        End Try
 
         sAppDir = ""
         Try
@@ -298,7 +306,7 @@ Public Class Launcher
                 MsgBox("Please make a selection from the list of network peers or specify a custom machine name.", MsgBoxStyle.Exclamation)
                 Exit Sub
             Else
-                sCommandLine &= " +connect " & lstNetwork.SelectedItem.ToString
+                sCommandLine &= " +connect " & cMachines.Item(lstNetwork.SelectedIndex + 1)
             End If
         Else
             If lstMaps.SelectedItems.Count = 0 Then
@@ -381,13 +389,15 @@ Public Class Launcher
         pgbNetwork.Visible = True
         pgbNetwork.Style = ProgressBarStyle.Marquee
 
+        nTimeout = CInt(txtTimeout.Text)
+        nPort = CInt(txtPort.Text)
         nTotalIPs = 0
         If False Then
             ThreadWinNT.BeginInvoke(ThreadWinNTCallback, Nothing)
         Else
-            Dim nStep As Integer = 4
+            Dim nStep As Integer = 2
             For i = 0 To 256 - nStep Step nStep
-                ThreadPing.BeginInvoke(100, i, i + nStep - 1, ThreadPingCallback, Nothing)
+                ThreadPing.BeginInvoke(nTimeout, nPort, i, i + nStep - 1, ThreadPingCallback, Nothing)
             Next i
         End If
     End Sub
@@ -410,43 +420,49 @@ Public Class Launcher
 
     Sub ThreadPingComplete(ByVal iAsyncResult As IAsyncResult)
         Try
-            Dim oPingObject As PingObject
-            oPingObject = ThreadPing.EndInvoke(iAsyncResult)
-            nTotalIPs += oPingObject.nEnd - oPingObject.nStart + 1
-            If Me.InvokeRequired Then
-                Dim handler1 As New UpdateMachinesHandler(AddressOf UpdateMachines)
-                Dim args1() As Object = {oPingObject.cMachines, nTotalIPs >= 255}
-                Me.BeginInvoke(handler1, args1)
-                Dim handler2 As New UpdateProgressHandler(AddressOf UpdateProgress)
-                Dim args2() As Object = {Math.Min(nTotalIPs, 255), 255}
-                Me.BeginInvoke(handler2, args2)
-            Else
-                UpdateMachines(oPingObject.cMachines, nTotalIPs >= 255)
-            End If
+            SyncLock Me
+                Dim oPingObject As PingObject
+                oPingObject = ThreadPing.EndInvoke(iAsyncResult)
+                nTotalIPs += oPingObject.nEnd - oPingObject.nStart + 1
+                If Me.InvokeRequired Then
+                    Dim handler1 As New UpdateMachinesHandler(AddressOf UpdateMachines)
+                    Dim args1() As Object = {oPingObject.cMachines, nTotalIPs >= 255}
+                    Me.BeginInvoke(handler1, args1)
+                    Dim handler2 As New UpdateProgressHandler(AddressOf UpdateProgress)
+                    Dim args2() As Object = {Math.Min(nTotalIPs, 255), 255}
+                    Me.BeginInvoke(handler2, args2)
+                Else
+                    UpdateMachines(oPingObject.cMachines, nTotalIPs >= 255)
+                End If
+            End SyncLock
         Catch ex As Exception
             Console.WriteLine("Error: " & ex.Message)
         End Try
     End Sub
 
     Sub UpdateMachines(ByVal Machines As Collection, ByVal bLast As Boolean)
-        If ListEmpty And Machines.Count > 0 Then
-            lstNetwork.Items.Clear()
-            ListEmpty = False
-        End If
-        If lstNetwork.Items.Count = 0 Then
-            If bLast Then
-                lstNetwork.Items.Add("No machines found on network.")
+        SyncLock Me
+            If ListEmpty And Machines.Count > 0 Then
+                lstNetwork.Items.Clear()
+                cMachines.Clear()
+                ListEmpty = False
             End If
-        End If
-        For Each obj In Machines
-            lstNetwork.Items.Add(obj.Name)
-        Next
-        If bLast Then
-            lstNetwork.Enabled = Not chkCustomPeer.Checked
-            pgbNetwork.Visible = False
-            btnRefresh.Enabled = True
-            Refreshing = False
-        End If
+            Dim obj As NetworkObject
+            For Each obj In Machines
+                lstNetwork.Items.Add(obj.Name)
+                cMachines.Add(obj.IP)
+            Next
+            lstNetwork.Enabled = Not chkCustomPeer.Checked And Not ListEmpty
+            If bLast Then
+                If ListEmpty Then
+                    lstNetwork.Items.Clear()
+                    lstNetwork.Items.Add("No games found on network using port " & nPort & ".")
+                End If
+                pgbNetwork.Visible = False
+                btnRefresh.Enabled = True
+                Refreshing = False
+            End If
+        End SyncLock
     End Sub
 
     Sub UpdateProgress(ByVal Value As Integer, ByVal Max As Integer)
@@ -461,7 +477,7 @@ Public Class Launcher
 
     Private Sub chkCustomPeer_CheckedChanged(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles chkCustomPeer.CheckedChanged
         txtPeer.Enabled = chkCustomPeer.Checked
-        lstNetwork.Enabled = Not Refreshing And Not chkCustomPeer.Checked
+        lstNetwork.Enabled = Not chkCustomPeer.Checked And Not ListEmpty
     End Sub
 
     Private Sub chkPlayer_CheckedChanged(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles chkPlayer.CheckedChanged

@@ -67,6 +67,7 @@
   <ItemGroup>
     <Compile Include="PingObject.vb" />
     <Compile Include="IPHlp.vb" />
+    <Compile Include="PortConnect.vb" />
     <Compile Include="VistaSecurity.vb" />
     <Compile Include="NotFound.Designer.vb">
       <DependentUpon>NotFound.vb</DependentUpon>
