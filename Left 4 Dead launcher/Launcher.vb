@@ -34,6 +34,10 @@ Public Class Launcher
 
     Private cControls As New Collection()
     Private settingIniFile As String = "prefs.ini"
+    Private nSelectedMap As Integer
+
+    Private cMaps As New Collection
+    Private cAddons As New Collection
 
     Private nTotalIPs As Integer
     Private nMaxIPs As Integer
@@ -127,18 +131,40 @@ Public Class Launcher
 
         CheckGameDir(False, False)
 
-        Dim map As String
+        RefreshMaps()
+
+    End Sub
+
+    Sub RefreshMaps()
+        cboMaps.Items.Clear()
+        cboMaps.Items.Add("All original maps")
+        cboMaps.Items.Add("Original coop maps")
+        cboMaps.Items.Add("Original versus maps")
+        cboMaps.Items.Add("Original survival maps")
+
         Dim pos As Integer
-        map = Dir(sGameDir & "left4dead\maps\*.nav")
+        Dim map As String = Dir(sGameDir & "left4dead\maps\*.bsp")
         Do While map <> ""
-            pos = InStrRev(map, ".nav")
-            If pos > -1 Then
-                map = Mid(map, 1, pos - 1)
-                lstMaps.Items.Add(map)
-            End If
+            Dim oMap As New Map(map)
+            cMaps.Add(oMap)
             map = Dir()
         Loop
 
+        Dim addon As String = Dir(sGameDir & "left4dead\addons\*.vpk")
+        Do While addon <> ""
+            pos = InStrRev(addon, ".vpk")
+            If pos > 0 Then
+                cAddons.Add(addon)
+                Console.WriteLine(addon)
+                Dim parser As New VPKParser()
+                parser.Parse(sGameDir & "left4dead\addons\", addon, cMaps, pgbVPK)
+                addon = Mid(addon, 1, pos - 1)
+                cboMaps.Items.Add("Addon: " & addon)
+            End If
+            addon = Dir()
+        Loop
+
+        cboMaps.SelectedIndex = nSelectedMap
     End Sub
 
     Public Function StripQuotes(ByVal input As String) As String
@@ -581,15 +607,19 @@ Public Class Launcher
     End Sub
 
     Sub LoadSettingIni(ByRef settingIni As IniFile, ByRef cControl As Control)
-        If TypeOf cControl Is CheckBox Then
-            Dim cCheck As CheckBox = cControl
-            cCheck.Checked = settingIni.GetInteger("controls", cControl.Name, cCheck.Checked)
-        ElseIf TypeOf cControl Is TextBox Then
-            Dim cText As TextBox = cControl
-            cText.Text = settingIni.GetString("controls", cControl.Name, cText.Text)
-        ElseIf TypeOf cControl Is ComboBox Then
-            Dim cCombo As ComboBox = cControl
-            cCombo.SelectedIndex = settingIni.GetInteger("controls", cControl.Name, cCombo.SelectedIndex)
+        If cControl.Name = "cboMaps" Then
+            nSelectedMap = settingIni.GetInteger("controls", cControl.Name, cboMaps.SelectedIndex)
+        Else
+            If TypeOf cControl Is CheckBox Then
+                Dim cCheck As CheckBox = cControl
+                cCheck.Checked = settingIni.GetInteger("controls", cControl.Name, cCheck.Checked)
+            ElseIf TypeOf cControl Is TextBox Then
+                Dim cText As TextBox = cControl
+                cText.Text = settingIni.GetString("controls", cControl.Name, cText.Text)
+            ElseIf TypeOf cControl Is ComboBox Then
+                Dim cCombo As ComboBox = cControl
+                cCombo.SelectedIndex = settingIni.GetInteger("controls", cControl.Name, cCombo.SelectedIndex)
+            End If
         End If
     End Sub
 
@@ -606,11 +636,11 @@ Public Class Launcher
         End If
     End Sub
 
-    Private Sub btnRefresh_Click(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles btnRefresh.Click
+    Private Sub btnRefresh_Click(ByVal sender As System.Object, ByVal e As System.EventArgs)
         RefreshNetwork()
     End Sub
 
-    Private Sub chkCustomPeer_CheckedChanged(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles chkCustomPeer.CheckedChanged
+    Private Sub chkCustomPeer_CheckedChanged(ByVal sender As System.Object, ByVal e As System.EventArgs)
         txtPeer.Enabled = chkCustomPeer.Checked
         lstNetwork.Enabled = Not chkCustomPeer.Checked And Not ListEmpty
     End Sub
@@ -639,4 +669,34 @@ Public Class Launcher
             Exit Sub
         End If
     End Sub
+
+    Private Sub cboMaps_SelectedIndexChanged(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles cboMaps.SelectedIndexChanged
+        lstMaps.Items.Clear()
+        Dim items As New ArrayList
+        For Each mMap As Map In cMaps
+            Select Case cboMaps.SelectedIndex
+                Case 0
+                    If Not mMap.AddOn Is Nothing Then Continue For
+                Case 1
+                    If Not mMap.AddOn Is Nothing Then Continue For
+                    If Not mMap.IsCoop Then Continue For
+                Case 2
+                    If Not mMap.AddOn Is Nothing Then Continue For
+                    If Not mMap.IsVersus Then Continue For
+                Case 3
+                    If Not mMap.AddOn Is Nothing Then Continue For
+                    If Not mMap.IsSurival Then Continue For
+                Case Else
+                    Dim sAddon As String = cAddons(cboMaps.SelectedIndex - 3)
+                    If mMap.AddOn <> sAddon Then Continue For
+            End Select
+            Dim pos As Integer = InStrRev(mMap.Name, ".bsp")
+            If pos > 0 Then
+                items.Add(Mid(mMap.Name, 1, pos - 1))
+            End If
+        Next
+        items.Sort()
+        lstMaps.Items.AddRange(items.ToArray)
+    End Sub
+
 End Class

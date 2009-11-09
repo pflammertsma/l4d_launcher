@@ -38,20 +38,7 @@ Partial Class Launcher
         Me.Label2 = New System.Windows.Forms.Label
         Me.cboGameType = New System.Windows.Forms.ComboBox
         Me.chkMultiplayer = New System.Windows.Forms.CheckBox
-        Me.grpDifficulty = New System.Windows.Forms.GroupBox
-        Me.optNormal = New System.Windows.Forms.RadioButton
-        Me.optImpossible = New System.Windows.Forms.RadioButton
-        Me.optHard = New System.Windows.Forms.RadioButton
-        Me.optEasy = New System.Windows.Forms.RadioButton
-        Me.grpMap = New System.Windows.Forms.GroupBox
-        Me.lstMaps = New System.Windows.Forms.ListBox
         Me.TabPage2 = New System.Windows.Forms.TabPage
-        Me.grpNetwork = New System.Windows.Forms.GroupBox
-        Me.pgbNetwork = New System.Windows.Forms.ProgressBar
-        Me.txtPeer = New System.Windows.Forms.TextBox
-        Me.chkCustomPeer = New System.Windows.Forms.CheckBox
-        Me.btnRefresh = New System.Windows.Forms.Button
-        Me.lstNetwork = New System.Windows.Forms.ListBox
         Me.TabPage3 = New System.Windows.Forms.TabPage
         Me.grpNetworkScanning = New System.Windows.Forms.GroupBox
         Me.lblTimeout = New System.Windows.Forms.Label
@@ -71,17 +58,32 @@ Partial Class Launcher
         Me.picBanner = New System.Windows.Forms.PictureBox
         Me.PictureBox1 = New System.Windows.Forms.PictureBox
         Me.btnLaunch = New System.Windows.Forms.Button
+        Me.cboMaps = New System.Windows.Forms.ComboBox
+        Me.optNormal = New System.Windows.Forms.RadioButton
+        Me.optImpossible = New System.Windows.Forms.RadioButton
+        Me.optHard = New System.Windows.Forms.RadioButton
+        Me.optEasy = New System.Windows.Forms.RadioButton
+        Me.Label6 = New System.Windows.Forms.Label
+        Me.Label7 = New System.Windows.Forms.Label
+        Me.lstMaps = New System.Windows.Forms.ListBox
+        Me.txtPeer = New System.Windows.Forms.TextBox
+        Me.chkCustomPeer = New System.Windows.Forms.CheckBox
+        Me.btnRefresh = New System.Windows.Forms.Button
+        Me.lstNetwork = New System.Windows.Forms.ListBox
+        Me.grpNetwork = New System.Windows.Forms.GroupBox
+        Me.pgbNetwork = New System.Windows.Forms.ProgressBar
+        Me.grpVPK = New System.Windows.Forms.GroupBox
+        Me.pgbVPK = New System.Windows.Forms.ProgressBar
         Me.grpGeneral.SuspendLayout()
         Me.tabs.SuspendLayout()
         Me.TabPage1.SuspendLayout()
-        Me.grpDifficulty.SuspendLayout()
-        Me.grpMap.SuspendLayout()
         Me.TabPage2.SuspendLayout()
-        Me.grpNetwork.SuspendLayout()
         Me.TabPage3.SuspendLayout()
         Me.grpNetworkScanning.SuspendLayout()
         CType(Me.picBanner, System.ComponentModel.ISupportInitialize).BeginInit()
         CType(Me.PictureBox1, System.ComponentModel.ISupportInitialize).BeginInit()
+        Me.grpNetwork.SuspendLayout()
+        Me.grpVPK.SuspendLayout()
         Me.SuspendLayout()
         '
         'grpGeneral
@@ -194,11 +196,18 @@ Partial Class Launcher
         '
         'TabPage1
         '
+        Me.TabPage1.Controls.Add(Me.grpVPK)
+        Me.TabPage1.Controls.Add(Me.lstMaps)
+        Me.TabPage1.Controls.Add(Me.cboMaps)
+        Me.TabPage1.Controls.Add(Me.Label7)
+        Me.TabPage1.Controls.Add(Me.Label6)
+        Me.TabPage1.Controls.Add(Me.optNormal)
+        Me.TabPage1.Controls.Add(Me.optImpossible)
+        Me.TabPage1.Controls.Add(Me.optHard)
+        Me.TabPage1.Controls.Add(Me.optEasy)
         Me.TabPage1.Controls.Add(Me.Label2)
         Me.TabPage1.Controls.Add(Me.cboGameType)
         Me.TabPage1.Controls.Add(Me.chkMultiplayer)
-        Me.TabPage1.Controls.Add(Me.grpDifficulty)
-        Me.TabPage1.Controls.Add(Me.grpMap)
         Me.TabPage1.ImageIndex = 0
         Me.TabPage1.Location = New System.Drawing.Point(4, 23)
         Me.TabPage1.Name = "TabPage1"
@@ -240,85 +249,13 @@ Partial Class Launcher
         Me.chkMultiplayer.Text = "Enable multiplayer mode"
         Me.chkMultiplayer.UseVisualStyleBackColor = True
         '
-        'grpDifficulty
-        '
-        Me.grpDifficulty.Controls.Add(Me.optNormal)
-        Me.grpDifficulty.Controls.Add(Me.optImpossible)
-        Me.grpDifficulty.Controls.Add(Me.optHard)
-        Me.grpDifficulty.Controls.Add(Me.optEasy)
-        Me.grpDifficulty.Location = New System.Drawing.Point(6, 6)
-        Me.grpDifficulty.Name = "grpDifficulty"
-        Me.grpDifficulty.Size = New System.Drawing.Size(346, 42)
-        Me.grpDifficulty.TabIndex = 3
-        Me.grpDifficulty.TabStop = False
-        Me.grpDifficulty.Text = "Difficulty"
-        '
-        'optNormal
-        '
-        Me.optNormal.AutoSize = True
-        Me.optNormal.Checked = True
-        Me.optNormal.Location = New System.Drawing.Point(85, 17)
-        Me.optNormal.Name = "optNormal"
-        Me.optNormal.Size = New System.Drawing.Size(58, 17)
-        Me.optNormal.TabIndex = 3
-        Me.optNormal.TabStop = True
-        Me.optNormal.Text = "&Normal"
-        Me.optNormal.UseVisualStyleBackColor = True
-        '
-        'optImpossible
-        '
-        Me.optImpossible.AutoSize = True
-        Me.optImpossible.Location = New System.Drawing.Point(249, 17)
-        Me.optImpossible.Name = "optImpossible"
-        Me.optImpossible.Size = New System.Drawing.Size(74, 17)
-        Me.optImpossible.TabIndex = 5
-        Me.optImpossible.Text = "&Impossible"
-        Me.optImpossible.UseVisualStyleBackColor = True
-        '
-        'optHard
-        '
-        Me.optHard.AutoSize = True
-        Me.optHard.Location = New System.Drawing.Point(172, 17)
-        Me.optHard.Name = "optHard"
-        Me.optHard.Size = New System.Drawing.Size(48, 17)
-        Me.optHard.TabIndex = 4
-        Me.optHard.Text = "H&ard"
-        Me.optHard.UseVisualStyleBackColor = True
-        '
-        'optEasy
-        '
-        Me.optEasy.AutoSize = True
-        Me.optEasy.Location = New System.Drawing.Point(8, 17)
-        Me.optEasy.Name = "optEasy"
-        Me.optEasy.Size = New System.Drawing.Size(48, 17)
-        Me.optEasy.TabIndex = 2
-        Me.optEasy.Text = "&Easy"
-        Me.optEasy.UseVisualStyleBackColor = True
-        '
-        'grpMap
-        '
-        Me.grpMap.Controls.Add(Me.lstMaps)
-        Me.grpMap.Location = New System.Drawing.Point(6, 54)
-        Me.grpMap.Name = "grpMap"
-        Me.grpMap.Size = New System.Drawing.Size(346, 129)
-        Me.grpMap.TabIndex = 4
-        Me.grpMap.TabStop = False
-        Me.grpMap.Text = "Map / Episode"
-        '
-        'lstMaps
-        '
-        Me.lstMaps.ColumnWidth = 175
-        Me.lstMaps.FormattingEnabled = True
-        Me.lstMaps.IntegralHeight = False
-        Me.lstMaps.Location = New System.Drawing.Point(6, 19)
-        Me.lstMaps.MultiColumn = True
-        Me.lstMaps.Name = "lstMaps"
-        Me.lstMaps.Size = New System.Drawing.Size(334, 104)
-        Me.lstMaps.TabIndex = 6
-        '
         'TabPage2
         '
         Me.TabPage2.Controls.Add(Me.grpNetwork)
+        Me.TabPage2.Controls.Add(Me.txtPeer)
+        Me.TabPage2.Controls.Add(Me.chkCustomPeer)
+        Me.TabPage2.Controls.Add(Me.btnRefresh)
+        Me.TabPage2.Controls.Add(Me.lstNetwork)
         Me.TabPage2.ImageIndex = 1
         Me.TabPage2.Location = New System.Drawing.Point(4, 23)
         Me.TabPage2.Name = "TabPage2"
@@ -327,65 +264,6 @@ Partial Class Launcher
         Me.TabPage2.TabIndex = 1
         Me.TabPage2.Text = "Join"
         Me.TabPage2.UseVisualStyleBackColor = True
-        '
-        'grpNetwork
-        '
-        Me.grpNetwork.Controls.Add(Me.pgbNetwork)
-        Me.grpNetwork.Controls.Add(Me.txtPeer)
-        Me.grpNetwork.Controls.Add(Me.chkCustomPeer)
-        Me.grpNetwork.Controls.Add(Me.btnRefresh)
-        Me.grpNetwork.Controls.Add(Me.lstNetwork)
-        Me.grpNetwork.Location = New System.Drawing.Point(6, 6)
-        Me.grpNetwork.Name = "grpNetwork"
-        Me.grpNetwork.Size = New System.Drawing.Size(346, 198)
-        Me.grpNetwork.TabIndex = 5
-        Me.grpNetwork.TabStop = False
-        Me.grpNetwork.Text = "Network peers"
-        '
-        'pgbNetwork
-        '
-        Me.pgbNetwork.Location = New System.Drawing.Point(78, 83)
-        Me.pgbNetwork.Name = "pgbNetwork"
-        Me.pgbNetwork.Size = New System.Drawing.Size(191, 15)
-        Me.pgbNetwork.TabIndex = 10
-        Me.pgbNetwork.Visible = False
-        '
-        'txtPeer
-        '
-        Me.txtPeer.Location = New System.Drawing.Point(179, 169)
-        Me.txtPeer.Name = "txtPeer"
-        Me.txtPeer.Size = New System.Drawing.Size(161, 20)
-        Me.txtPeer.TabIndex = 9
-        '
-        'chkCustomPeer
-        '
-        Me.chkCustomPeer.AutoSize = True
-        Me.chkCustomPeer.Location = New System.Drawing.Point(115, 173)
-        Me.chkCustomPeer.Name = "chkCustomPeer"
-        Me.chkCustomPeer.Size = New System.Drawing.Size(64, 17)
-        Me.chkCustomPeer.TabIndex = 8
-        Me.chkCustomPeer.Text = "Custom:"
-        Me.chkCustomPeer.UseVisualStyleBackColor = True
-        '
-        'btnRefresh
-        '
-        Me.btnRefresh.Location = New System.Drawing.Point(6, 168)
-        Me.btnRefresh.Name = "btnRefresh"
-        Me.btnRefresh.Size = New System.Drawing.Size(102, 24)
-        Me.btnRefresh.TabIndex = 7
-        Me.btnRefresh.Text = "Refresh list"
-        Me.btnRefresh.UseVisualStyleBackColor = True
-        '
-        'lstNetwork
-        '
-        Me.lstNetwork.ColumnWidth = 150
-        Me.lstNetwork.FormattingEnabled = True
-        Me.lstNetwork.IntegralHeight = False
-        Me.lstNetwork.Location = New System.Drawing.Point(6, 19)
-        Me.lstNetwork.MultiColumn = True
-        Me.lstNetwork.Name = "lstNetwork"
-        Me.lstNetwork.Size = New System.Drawing.Size(334, 143)
-        Me.lstNetwork.TabIndex = 6
         '
         'TabPage3
         '
@@ -576,6 +454,159 @@ Partial Class Launcher
         Me.btnLaunch.TextAlign = System.Drawing.ContentAlignment.MiddleRight
         Me.btnLaunch.UseVisualStyleBackColor = True
         '
+        'cboMaps
+        '
+        Me.cboMaps.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList
+        Me.cboMaps.FormattingEnabled = True
+        Me.cboMaps.Location = New System.Drawing.Point(60, 29)
+        Me.cboMaps.Name = "cboMaps"
+        Me.cboMaps.Size = New System.Drawing.Size(291, 21)
+        Me.cboMaps.TabIndex = 7
+        '
+        'optNormal
+        '
+        Me.optNormal.AutoSize = True
+        Me.optNormal.Checked = True
+        Me.optNormal.Location = New System.Drawing.Point(116, 6)
+        Me.optNormal.Name = "optNormal"
+        Me.optNormal.Size = New System.Drawing.Size(58, 17)
+        Me.optNormal.TabIndex = 9
+        Me.optNormal.TabStop = True
+        Me.optNormal.Text = "&Normal"
+        Me.optNormal.UseVisualStyleBackColor = True
+        '
+        'optImpossible
+        '
+        Me.optImpossible.AutoSize = True
+        Me.optImpossible.Location = New System.Drawing.Point(234, 6)
+        Me.optImpossible.Name = "optImpossible"
+        Me.optImpossible.Size = New System.Drawing.Size(74, 17)
+        Me.optImpossible.TabIndex = 11
+        Me.optImpossible.Text = "&Impossible"
+        Me.optImpossible.UseVisualStyleBackColor = True
+        '
+        'optHard
+        '
+        Me.optHard.AutoSize = True
+        Me.optHard.Location = New System.Drawing.Point(180, 6)
+        Me.optHard.Name = "optHard"
+        Me.optHard.Size = New System.Drawing.Size(48, 17)
+        Me.optHard.TabIndex = 10
+        Me.optHard.Text = "H&ard"
+        Me.optHard.UseVisualStyleBackColor = True
+        '
+        'optEasy
+        '
+        Me.optEasy.AutoSize = True
+        Me.optEasy.Location = New System.Drawing.Point(62, 6)
+        Me.optEasy.Name = "optEasy"
+        Me.optEasy.Size = New System.Drawing.Size(48, 17)
+        Me.optEasy.TabIndex = 8
+        Me.optEasy.Text = "&Easy"
+        Me.optEasy.UseVisualStyleBackColor = True
+        '
+        'Label6
+        '
+        Me.Label6.AutoSize = True
+        Me.Label6.Location = New System.Drawing.Point(6, 8)
+        Me.Label6.Name = "Label6"
+        Me.Label6.Size = New System.Drawing.Size(50, 13)
+        Me.Label6.TabIndex = 12
+        Me.Label6.Text = "Difficulty:"
+        '
+        'Label7
+        '
+        Me.Label7.AutoSize = True
+        Me.Label7.Location = New System.Drawing.Point(6, 32)
+        Me.Label7.Name = "Label7"
+        Me.Label7.Size = New System.Drawing.Size(48, 13)
+        Me.Label7.TabIndex = 12
+        Me.Label7.Text = "Map set:"
+        '
+        'lstMaps
+        '
+        Me.lstMaps.ColumnWidth = 162
+        Me.lstMaps.FormattingEnabled = True
+        Me.lstMaps.IntegralHeight = False
+        Me.lstMaps.Location = New System.Drawing.Point(9, 56)
+        Me.lstMaps.MultiColumn = True
+        Me.lstMaps.Name = "lstMaps"
+        Me.lstMaps.Size = New System.Drawing.Size(343, 124)
+        Me.lstMaps.TabIndex = 13
+        '
+        'txtPeer
+        '
+        Me.txtPeer.Location = New System.Drawing.Point(179, 184)
+        Me.txtPeer.Name = "txtPeer"
+        Me.txtPeer.Size = New System.Drawing.Size(172, 20)
+        Me.txtPeer.TabIndex = 14
+        '
+        'chkCustomPeer
+        '
+        Me.chkCustomPeer.AutoSize = True
+        Me.chkCustomPeer.Location = New System.Drawing.Point(115, 188)
+        Me.chkCustomPeer.Name = "chkCustomPeer"
+        Me.chkCustomPeer.Size = New System.Drawing.Size(64, 17)
+        Me.chkCustomPeer.TabIndex = 13
+        Me.chkCustomPeer.Text = "Custom:"
+        Me.chkCustomPeer.UseVisualStyleBackColor = True
+        '
+        'btnRefresh
+        '
+        Me.btnRefresh.Location = New System.Drawing.Point(6, 183)
+        Me.btnRefresh.Name = "btnRefresh"
+        Me.btnRefresh.Size = New System.Drawing.Size(102, 24)
+        Me.btnRefresh.TabIndex = 12
+        Me.btnRefresh.Text = "Refresh list"
+        Me.btnRefresh.UseVisualStyleBackColor = True
+        '
+        'lstNetwork
+        '
+        Me.lstNetwork.ColumnWidth = 150
+        Me.lstNetwork.FormattingEnabled = True
+        Me.lstNetwork.IntegralHeight = False
+        Me.lstNetwork.Location = New System.Drawing.Point(6, 6)
+        Me.lstNetwork.MultiColumn = True
+        Me.lstNetwork.Name = "lstNetwork"
+        Me.lstNetwork.Size = New System.Drawing.Size(345, 171)
+        Me.lstNetwork.TabIndex = 11
+        '
+        'grpNetwork
+        '
+        Me.grpNetwork.Controls.Add(Me.pgbNetwork)
+        Me.grpNetwork.Location = New System.Drawing.Point(75, 67)
+        Me.grpNetwork.Name = "grpNetwork"
+        Me.grpNetwork.Size = New System.Drawing.Size(204, 40)
+        Me.grpNetwork.TabIndex = 15
+        Me.grpNetwork.TabStop = False
+        Me.grpNetwork.Text = "Populating network peers..."
+        Me.grpNetwork.Visible = False
+        '
+        'pgbNetwork
+        '
+        Me.pgbNetwork.Location = New System.Drawing.Point(6, 17)
+        Me.pgbNetwork.Name = "pgbNetwork"
+        Me.pgbNetwork.Size = New System.Drawing.Size(191, 15)
+        Me.pgbNetwork.TabIndex = 16
+        '
+        'grpVPK
+        '
+        Me.grpVPK.Controls.Add(Me.pgbVPK)
+        Me.grpVPK.Location = New System.Drawing.Point(84, 96)
+        Me.grpVPK.Name = "grpVPK"
+        Me.grpVPK.Size = New System.Drawing.Size(204, 40)
+        Me.grpVPK.TabIndex = 16
+        Me.grpVPK.TabStop = False
+        Me.grpVPK.Text = "Reading VPK file..."
+        Me.grpVPK.Visible = False
+        '
+        'pgbVPK
+        '
+        Me.pgbVPK.Location = New System.Drawing.Point(6, 17)
+        Me.pgbVPK.Name = "pgbVPK"
+        Me.pgbVPK.Size = New System.Drawing.Size(191, 15)
+        Me.pgbVPK.TabIndex = 16
+        '
         'Launcher
         '
         Me.AutoScaleDimensions = New System.Drawing.SizeF(6.0!, 13.0!)
@@ -601,18 +632,16 @@ Partial Class Launcher
         Me.tabs.ResumeLayout(False)
         Me.TabPage1.ResumeLayout(False)
         Me.TabPage1.PerformLayout()
-        Me.grpDifficulty.ResumeLayout(False)
-        Me.grpDifficulty.PerformLayout()
-        Me.grpMap.ResumeLayout(False)
         Me.TabPage2.ResumeLayout(False)
-        Me.grpNetwork.ResumeLayout(False)
-        Me.grpNetwork.PerformLayout()
+        Me.TabPage2.PerformLayout()
         Me.TabPage3.ResumeLayout(False)
         Me.TabPage3.PerformLayout()
         Me.grpNetworkScanning.ResumeLayout(False)
         Me.grpNetworkScanning.PerformLayout()
         CType(Me.picBanner, System.ComponentModel.ISupportInitialize).EndInit()
         CType(Me.PictureBox1, System.ComponentModel.ISupportInitialize).EndInit()
+        Me.grpNetwork.ResumeLayout(False)
+        Me.grpVPK.ResumeLayout(False)
         Me.ResumeLayout(False)
         Me.PerformLayout()
 
@@ -626,22 +655,9 @@ Partial Class Launcher
     Friend WithEvents chkConsole As System.Windows.Forms.CheckBox
     Friend WithEvents tabs As System.Windows.Forms.TabControl
     Friend WithEvents TabPage1 As System.Windows.Forms.TabPage
-    Friend WithEvents grpDifficulty As System.Windows.Forms.GroupBox
-    Friend WithEvents optNormal As System.Windows.Forms.RadioButton
-    Friend WithEvents optImpossible As System.Windows.Forms.RadioButton
-    Friend WithEvents optHard As System.Windows.Forms.RadioButton
-    Friend WithEvents optEasy As System.Windows.Forms.RadioButton
-    Friend WithEvents grpMap As System.Windows.Forms.GroupBox
-    Friend WithEvents lstMaps As System.Windows.Forms.ListBox
     Friend WithEvents TabPage2 As System.Windows.Forms.TabPage
     Friend WithEvents ImageList As System.Windows.Forms.ImageList
     Friend WithEvents chkMultiplayer As System.Windows.Forms.CheckBox
-    Friend WithEvents grpNetwork As System.Windows.Forms.GroupBox
-    Friend WithEvents lstNetwork As System.Windows.Forms.ListBox
-    Friend WithEvents btnRefresh As System.Windows.Forms.Button
-    Friend WithEvents txtPeer As System.Windows.Forms.TextBox
-    Friend WithEvents chkCustomPeer As System.Windows.Forms.CheckBox
-    Friend WithEvents pgbNetwork As System.Windows.Forms.ProgressBar
     Friend WithEvents Label2 As System.Windows.Forms.Label
     Friend WithEvents cboGameType As System.Windows.Forms.ComboBox
     Friend WithEvents TabPage3 As System.Windows.Forms.TabPage
@@ -664,5 +680,21 @@ Partial Class Launcher
     Friend WithEvents lblPort As System.Windows.Forms.Label
     Friend WithEvents ToolTip As System.Windows.Forms.ToolTip
     Friend WithEvents btnFix As System.Windows.Forms.Button
+    Friend WithEvents cboMaps As System.Windows.Forms.ComboBox
+    Friend WithEvents lstMaps As System.Windows.Forms.ListBox
+    Friend WithEvents Label7 As System.Windows.Forms.Label
+    Friend WithEvents Label6 As System.Windows.Forms.Label
+    Friend WithEvents optNormal As System.Windows.Forms.RadioButton
+    Friend WithEvents optImpossible As System.Windows.Forms.RadioButton
+    Friend WithEvents optHard As System.Windows.Forms.RadioButton
+    Friend WithEvents optEasy As System.Windows.Forms.RadioButton
+    Friend WithEvents txtPeer As System.Windows.Forms.TextBox
+    Friend WithEvents chkCustomPeer As System.Windows.Forms.CheckBox
+    Friend WithEvents btnRefresh As System.Windows.Forms.Button
+    Friend WithEvents lstNetwork As System.Windows.Forms.ListBox
+    Friend WithEvents grpVPK As System.Windows.Forms.GroupBox
+    Friend WithEvents pgbVPK As System.Windows.Forms.ProgressBar
+    Friend WithEvents grpNetwork As System.Windows.Forms.GroupBox
+    Friend WithEvents pgbNetwork As System.Windows.Forms.ProgressBar
 
 End Class

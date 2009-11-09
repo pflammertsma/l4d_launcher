@@ -81,6 +81,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="IniFile.vb" />
+    <Compile Include="Map.vb" />
     <Compile Include="PingObject.vb" />
     <Compile Include="IPHlp.vb" />
     <Compile Include="PortConnect.vb" />
@@ -115,6 +116,7 @@
       <DesignTimeSharedInput>True</DesignTimeSharedInput>
     </Compile>
     <Compile Include="NetworkInfo.vb" />
+    <Compile Include="VPKParser.vb" />
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="NotFound.resx">
