@@ -147,6 +147,7 @@
   <ItemGroup>
     <None Include="Resources\fix_glow_16.png" />
     <Content Include="Resources\icon.ico" />
+    <None Include="Resources\refresh_glow_16.png" />
     <None Include="app.config" />
     <None Include="Resources\close_glow_16.png" />
     <None Include="Resources\l4d_banner.png" />

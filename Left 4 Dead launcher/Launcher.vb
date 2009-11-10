@@ -41,8 +41,8 @@ Public Class Launcher
 
     Private nTotalIPs As Integer
     Private nMaxIPs As Integer
-    Private nFirstIP As Integer = 0
-    Private nLastIP As Integer = 256
+    Private nFirstIP As Integer = 154
+    Private nLastIP As Integer = 154
     Private nStepIP As Integer = 1
     Private Refreshing As Boolean
     Private ListEmpty As Boolean
@@ -55,6 +55,9 @@ Public Class Launcher
     End Sub
 
     Private Sub Form1_Load(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles MyBase.Load
+        'PortConnect.Test()
+        'End
+
         Try
             Dim iBuildInfo As FileVersionInfo = FileVersionInfo.GetVersionInfo(Application.ExecutablePath)
             lblVersion.Text = "v" & iBuildInfo.ProductVersion
@@ -142,6 +145,7 @@ Public Class Launcher
         cboMaps.Items.Add("Original versus maps")
         cboMaps.Items.Add("Original survival maps")
 
+        cMaps.Clear()
         Dim pos As Integer
         Dim map As String = Dir(sGameDir & "left4dead\maps\*.bsp")
         Do While map <> ""
@@ -150,6 +154,7 @@ Public Class Launcher
             map = Dir()
         Loop
 
+        cAddons.Clear()
         Dim addon As String = Dir(sGameDir & "left4dead\addons\*.vpk")
         Do While addon <> ""
             pos = InStrRev(addon, ".vpk")
@@ -501,6 +506,7 @@ Public Class Launcher
             For i = nFirstIP To nLastIP Step nStepIP
                 Dim nThisStep As Integer = Math.Min(i + nStepIP - 1, nLastIP)
                 ThreadPing.BeginInvoke(nTimeout, nPort, i, nThisStep, ThreadPingCallback, Nothing)
+                Exit For
             Next i
         End If
     End Sub
@@ -697,6 +703,10 @@ Public Class Launcher
         Next
         items.Sort()
         lstMaps.Items.AddRange(items.ToArray)
+    End Sub
+
+    Private Sub btnReload_Click(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles btnReload.Click
+        RefreshMaps()
     End Sub
 
 End Class
