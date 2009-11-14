@@ -1,5 +1,6 @@
 ﻿Imports Microsoft.Win32
 Imports System.IO
+Imports System.Collections.Specialized
 
 ' -game left4dead -console -novid +sv_lan 1 +sv_allow_lobby_connect_only 0 +z_difficulty normal +map l4d_hospital01_apartment
 
@@ -17,13 +18,10 @@ Public Class Launcher
     Public Shared _listDelegate As ListDelegate
 
     Private ThreadWinNT As GetWinNTList = AddressOf NetworkProbe.Probe
-    Private ThreadPing As GetPingIPs = AddressOf IPHlp.ReturnMachines
     Private ThreadWinNTCallback As AsyncCallback = AddressOf ThreadWinNTComplete
-    Private ThreadPingCallback As AsyncCallback = AddressOf ThreadPingComplete
 
     '*** a delegate for executing handler methods
     Delegate Function GetWinNTList() As Collection
-    Delegate Function GetPingIPs(ByVal nTimeout As Integer, ByVal nPort As Integer, ByVal nStart As Integer, ByVal nEnd As Integer) As PingObject
     Delegate Sub UpdateMachinesHandler(ByVal Machines As Collection, ByVal bLast As Boolean)
     Delegate Sub UpdateProgressHandler(ByVal Value As Integer, ByVal Max As Integer)
 
@@ -34,17 +32,15 @@ Public Class Launcher
 
     Private cControls As New Collection()
     Private settingIniFile As String = "prefs.ini"
-    Private nSelectedMap As Integer
+    Private nSelectedMap As Integer = -1
 
     Private cMaps As New Collection
     Private cAddons As New Collection
 
-    Private nTotalIPs As Integer
-    Private nMaxIPs As Integer
-    Private nFirstIP As Integer = 154
-    Private nLastIP As Integer = 154
-    Private nStepIP As Integer = 1
-    Private Refreshing As Boolean
+    Public cSurvivalMaps As New ArrayList
+
+    Private RefreshingMaps As Boolean
+    Private RefreshingNetwork As Boolean
     Private ListEmpty As Boolean
     Private cMachines As New Collection
 
@@ -55,9 +51,6 @@ Public Class Launcher
     End Sub
 
     Private Sub Form1_Load(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles MyBase.Load
-        'PortConnect.Test()
-        'End
-
         Try
             Dim iBuildInfo As FileVersionInfo = FileVersionInfo.GetVersionInfo(Application.ExecutablePath)
             lblVersion.Text = "v" & iBuildInfo.ProductVersion
@@ -75,10 +68,9 @@ Public Class Launcher
 
         cboPlayer.SelectedIndex = 0
         cboGameType.SelectedIndex = 0
+        cboScan.SelectedIndex = 0
         txtPort.Text = nDefaultPort
         txtTimeout.Text = nDefaultTimeout
-
-        ToolTip.SetToolTip(chkNameINI, "Writes the ""PlayerName"" entry into the L4D ""rev.ini"" file")
 
         sGameDir = ""
 
@@ -90,11 +82,6 @@ Public Class Launcher
         Call chkCustomPeer_CheckedChanged(Nothing, Nothing)
         lblPort.Text = "Default: " & nDefaultPort
         lblTimeout.Text = "Recommended: " & nDefaultTimeout
-
-        Try
-            RefreshNetwork()
-        Catch
-        End Try
 
         bNeedFix = True
         Try
@@ -134,11 +121,23 @@ Public Class Launcher
 
         CheckGameDir(False, False)
 
+        btnRefresh.Enabled = False
         RefreshMaps()
+        RefreshNetwork()
 
     End Sub
 
     Sub RefreshMaps()
+        RefreshingMaps = True
+        tabs_SelectedIndexChanged(Nothing, Nothing)
+
+        lstMaps.Items.Clear()
+        grpVPK.Text = "Scanning directories..."
+        grpVPK.Visible = True
+        pgbVPK.Value = 0
+        pgbNetwork.Style = ProgressBarStyle.Marquee
+        cboMaps.Enabled = False
+
         cboMaps.Items.Clear()
         cboMaps.Items.Add("All original maps")
         cboMaps.Items.Add("Original coop maps")
@@ -149,6 +148,7 @@ Public Class Launcher
         Dim pos As Integer
         Dim map As String = Dir(sGameDir & "left4dead\maps\*.bsp")
         Do While map <> ""
+            Application.DoEvents()
             Dim oMap As New Map(map)
             cMaps.Add(oMap)
             map = Dir()
@@ -157,10 +157,11 @@ Public Class Launcher
         cAddons.Clear()
         Dim addon As String = Dir(sGameDir & "left4dead\addons\*.vpk")
         Do While addon <> ""
+            Application.DoEvents()
             pos = InStrRev(addon, ".vpk")
             If pos > 0 Then
                 cAddons.Add(addon)
-                Console.WriteLine(addon)
+                'Console.WriteLine(addon)
                 Dim parser As New VPKParser()
                 parser.Parse(sGameDir & "left4dead\addons\", addon, cMaps, pgbVPK)
                 addon = Mid(addon, 1, pos - 1)
@@ -169,7 +170,14 @@ Public Class Launcher
             addon = Dir()
         Loop
 
-        cboMaps.SelectedIndex = nSelectedMap
+        grpVPK.Visible = False
+        If nSelectedMap >= 0 And nSelectedMap < cboMaps.Items.Count Then
+            cboMaps.SelectedIndex = nSelectedMap
+        End If
+        cboMaps.Enabled = True
+        cboMaps_SelectedIndexChanged(Nothing, Nothing)
+        RefreshingMaps = False
+        tabs_SelectedIndexChanged(Nothing, Nothing)
     End Sub
 
     Public Function StripQuotes(ByVal input As String) As String
@@ -362,23 +370,21 @@ Public Class Launcher
         End If
         If txtName.Enabled Then
             sCommandLine &= " +name """ & txtName.Text & """"
-            If chkNameINI.Checked Then
-                Dim revIniFile As String = "rev.ini"
-                Dim iniFile As New FileInfo(sGameDir & revIniFile)
-                If iniFile.Exists() Then
-                    Dim revIni As New IniFile(sGameDir & revIniFile)
-                    Dim sName As String = revIni.GetString("steamclient", "PlayerName", "")
-                    If sName <> txtName.Text Then
-                        Dim iniBakFile As New FileInfo(sGameDir & revIniFile & ".bak")
-                        If Not iniBakFile.Exists() Then
-                            FileCopy(sGameDir & revIniFile, sGameDir & revIniFile & ".bak")
-                        End If
-                        revIni.WriteString("steamclient", "PlayerName", txtName.Text)
+            Dim revIniFile As String = "rev.ini"
+            Dim iniFile As New FileInfo(sGameDir & revIniFile)
+            If iniFile.Exists() Then
+                Dim revIni As New IniFile(sGameDir & revIniFile)
+                Dim sName As String = revIni.GetString("steamclient", "PlayerName", "")
+                If sName <> txtName.Text Then
+                    Dim iniBakFile As New FileInfo(sGameDir & revIniFile & ".bak")
+                    If Not iniBakFile.Exists() Then
+                        FileCopy(sGameDir & revIniFile, sGameDir & revIniFile & ".bak")
                     End If
-                Else
-                    MsgBox("The INI file required to set the player name is missing:" & vbCrLf & vbCrLf & "    " & sGameDir & revIniFile, MsgBoxStyle.Exclamation)
-                    Exit Sub
+                    revIni.WriteString("steamclient", "PlayerName", txtName.Text)
                 End If
+            Else
+                MsgBox("The INI file required to set the player name is missing:" & vbCrLf & vbCrLf & "    " & sGameDir & revIniFile, MsgBoxStyle.Exclamation)
+                Exit Sub
             End If
         End If
         If cboPlayer.Enabled Then
@@ -396,22 +402,20 @@ Public Class Launcher
                     End If
                 End If
                 sCommandLine &= " +connect " & txtPeer.Text
-            ElseIf False And Refreshing Then
-                MsgBox("Please wait for the list of network peers to finish populating and make a selection, or specify a custom machine name.", MsgBoxStyle.Exclamation)
-                Exit Sub
             ElseIf Not lstNetwork.Enabled Or ListEmpty Then
                 MsgBox("The list of network peers is empty. Refresh it and select one, or specify a custom machine name.", MsgBoxStyle.Exclamation)
                 Exit Sub
-            ElseIf lstNetwork.SelectedIndex = -1 Then
+            ElseIf lstNetwork.SelectedItems.Count = 0 Then
                 MsgBox("Please make a selection from the list of network peers or specify a custom machine name.", MsgBoxStyle.Exclamation)
                 Exit Sub
             Else
-                If IsLocalhost(cMachines.Item(lstNetwork.SelectedIndex + 1)) Then
+                Dim index As Integer = lstNetwork.SelectedItems(0).Index
+                If IsLocalhost(cMachines.Item(index + 1)) Then
                     If MsgBox("Are you sure you want to connect to your own machine?", MsgBoxStyle.Question + MsgBoxStyle.YesNo) = MsgBoxResult.No Then
                         Exit Sub
                     End If
                 End If
-                sCommandLine &= " +connect " & cMachines.Item(lstNetwork.SelectedIndex + 1)
+                sCommandLine &= " +connect " & cMachines.Item(index + 1)
             End If
         Else
             If lstMaps.SelectedItems.Count = 0 Then
@@ -484,31 +488,36 @@ Public Class Launcher
     End Sub
 
     Sub RefreshNetwork()
-        btnRefresh.Enabled = False
-        Refreshing = True
+        RefreshingNetwork = True
+        tabs_SelectedIndexChanged(Nothing, Nothing)
         ListEmpty = True
 
         lstNetwork.Items.Clear()
-        lstNetwork.Enabled = False
-        lstNetwork.Items.Add("Please wait; populating...")
-
-        pgbNetwork.Value = 0
-        pgbNetwork.Visible = True
-        pgbNetwork.Style = ProgressBarStyle.Marquee
+        UpdateNetwork("Populating servers...", , ProgressBarStyle.Marquee)
 
         nTimeout = CInt(txtTimeout.Text)
         nPort = CInt(txtPort.Text)
-        nTotalIPs = 0
-        nMaxIPs = nLastIP - nFirstIP
-        If False Then
-            ThreadWinNT.BeginInvoke(ThreadWinNTCallback, Nothing)
-        Else
-            For i = nFirstIP To nLastIP Step nStepIP
-                Dim nThisStep As Integer = Math.Min(i + nStepIP - 1, nLastIP)
-                ThreadPing.BeginInvoke(nTimeout, nPort, i, nThisStep, ThreadPingCallback, Nothing)
-                Exit For
-            Next i
+        Dim bBroadcast As Boolean = (cboScan.SelectedIndex = 0)
+        PortConnect.Connect(Me, bBroadcast, nPort, nTimeout)
+    End Sub
+
+    Sub UpdateNetwork(ByVal sTitle As String, Optional ByVal sText As String = Nothing, Optional ByVal pStyle As ProgressBarStyle = ProgressBarStyle.Blocks)
+        If sTitle Is Nothing Then
+            grpNetwork.Visible = False
+            Exit Sub
         End If
+        grpNetwork.Text = sTitle
+        grpNetwork.Visible = True
+        pgbNetwork.Value = 0
+        If sText Is Nothing Then
+            lblNetwork.Visible = False
+            pgbNetwork.Visible = True
+        Else
+            pgbNetwork.Visible = False
+            lblNetwork.Text = sText
+            lblNetwork.Visible = True
+        End If
+        pgbNetwork.Style = pStyle
     End Sub
 
     Sub ThreadWinNTComplete(ByVal iAsyncResult As IAsyncResult)
@@ -527,28 +536,6 @@ Public Class Launcher
         End Try
     End Sub
 
-    Sub ThreadPingComplete(ByVal iAsyncResult As IAsyncResult)
-        Try
-            SyncLock Me
-                Dim oPingObject As PingObject
-                oPingObject = ThreadPing.EndInvoke(iAsyncResult)
-                nTotalIPs += oPingObject.nEnd - oPingObject.nStart + 1
-                If Me.InvokeRequired Then
-                    Dim handler1 As New UpdateMachinesHandler(AddressOf UpdateMachines)
-                    Dim args1() As Object = {oPingObject.cMachines, nTotalIPs >= nMaxIPs}
-                    Me.BeginInvoke(handler1, args1)
-                    Dim handler2 As New UpdateProgressHandler(AddressOf UpdateProgress)
-                    Dim args2() As Object = {Math.Min(nTotalIPs, nMaxIPs), nMaxIPs}
-                    Me.BeginInvoke(handler2, args2)
-                Else
-                    UpdateMachines(oPingObject.cMachines, nTotalIPs >= nMaxIPs)
-                End If
-            End SyncLock
-        Catch ex As Exception
-            Console.WriteLine("Error: " & ex.Message)
-        End Try
-    End Sub
-
     Sub UpdateMachines(ByVal Machines As Collection, ByVal bLast As Boolean)
         SyncLock Me
             If ListEmpty And Machines.Count > 0 Then
@@ -558,18 +545,35 @@ Public Class Launcher
             End If
             Dim obj As NetworkObject
             For Each obj In Machines
-                lstNetwork.Items.Add(obj.Name)
+                Dim items(4) As String
+                items(0) = obj.Name
+                If obj.Params.ContainsKey("hostname") Then
+                    items(1) = obj.Params("hostname")
+                End If
+                If obj.Params.ContainsKey("players") Then
+                    If obj.Params.ContainsKey("maxplayers") Then
+                        items(2) = obj.Params("players") & " of " & obj.Params("maxplayers")
+                    Else
+                        items(2) = obj.Params("players")
+                    End If
+                End If
+                If obj.Params.ContainsKey("mapname") Then
+                    items(3) = obj.Params("mapname")
+                End If
+                Dim item As New ListViewItem(items)
+                item.ToolTipText = obj.IP
+                lstNetwork.Items.Add(item)
                 cMachines.Add(obj.IP)
             Next
-            lstNetwork.Enabled = Not chkCustomPeer.Checked And Not ListEmpty
             If bLast Then
                 If ListEmpty Then
-                    lstNetwork.Items.Clear()
-                    lstNetwork.Items.Add("No games found on network using port " & nPort & ".")
+                    UpdateNetwork("", "No servers found on the network.")
+                Else
+                    UpdateNetwork(Nothing)
                 End If
-                pgbNetwork.Visible = False
                 btnRefresh.Enabled = True
-                Refreshing = False
+                RefreshingNetwork = False
+                tabs_SelectedIndexChanged(Nothing, Nothing)
             End If
         End SyncLock
     End Sub
@@ -583,7 +587,6 @@ Public Class Launcher
     Sub GetControls(ByRef cParent As Control)
         For Each cControl As Control In cParent.Controls
             cControls.Add(cControl)
-            Console.WriteLine(cControl.Name)
             If cControl.HasChildren Then
                 GetControls(cControl)
             End If
@@ -599,6 +602,27 @@ Public Class Launcher
         For Each cControl In cControls
             LoadSettingIni(settingIni, cControl)
         Next
+        cSurvivalMaps.Add("l4d_hospital02_subway")
+        cSurvivalMaps.Add("l4d_hospital03_sewers")
+        cSurvivalMaps.Add("l4d_hospital04_interior")
+        cSurvivalMaps.Add("l4d_smalltown02_drainage")
+        cSurvivalMaps.Add("l4d_smalltown03_ranchhouse")
+        cSurvivalMaps.Add("l4d_smalltown04_mainstreet")
+        cSurvivalMaps.Add("l4d_smalltown05_houseboat")
+        cSurvivalMaps.Add("l4d_airport02_offices")
+        cSurvivalMaps.Add("l4d_airport03_garage")
+        cSurvivalMaps.Add("l4d_airport04_terminal")
+        cSurvivalMaps.Add("l4d_farm02_traintunnel")
+        cSurvivalMaps.Add("l4d_farm03_bridge")
+        Dim sMap As String
+        Dim count As Integer
+        Do
+            count += 1
+            sMap = settingIni.GetString("survivor_maps", CStr(count), Nothing)
+            If Not cSurvivalMaps.Contains(sMap) Then
+                cSurvivalMaps.Add(sMap)
+            End If
+        Loop Until sMap Is Nothing
     End Sub
 
     Sub SaveSettings()
@@ -607,9 +631,11 @@ Public Class Launcher
         For Each cControl In cControls
             SaveSettingIni(settingIni, cControl)
         Next
-        'SaveSettingIni(settingIni, chkName)
-        'SaveSettingIni(settingIni, txtName)
-        'SaveSettingIni(settingIni, chkNameINI)
+        Dim count As Integer
+        For Each sMap In cSurvivalMaps
+            count += 1
+            settingIni.WriteString("survivor_maps", CStr(count), sMap)
+        Next
     End Sub
 
     Sub LoadSettingIni(ByRef settingIni As IniFile, ByRef cControl As Control)
@@ -642,22 +668,12 @@ Public Class Launcher
         End If
     End Sub
 
-    Private Sub btnRefresh_Click(ByVal sender As System.Object, ByVal e As System.EventArgs)
-        RefreshNetwork()
-    End Sub
-
-    Private Sub chkCustomPeer_CheckedChanged(ByVal sender As System.Object, ByVal e As System.EventArgs)
-        txtPeer.Enabled = chkCustomPeer.Checked
-        lstNetwork.Enabled = Not chkCustomPeer.Checked And Not ListEmpty
-    End Sub
-
     Private Sub chkPlayer_CheckedChanged(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles chkPlayer.CheckedChanged
         cboPlayer.Enabled = chkPlayer.Checked
     End Sub
 
     Private Sub chkName_CheckedChanged(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles chkName.CheckedChanged
         txtName.Enabled = chkName.Checked
-        chkNameINI.Enabled = chkName.Checked
     End Sub
 
     Private Sub btnFix_Click(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles btnFix.Click
@@ -677,6 +693,7 @@ Public Class Launcher
     End Sub
 
     Private Sub cboMaps_SelectedIndexChanged(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles cboMaps.SelectedIndexChanged
+        nSelectedMap = cboMaps.SelectedIndex
         lstMaps.Items.Clear()
         Dim items As New ArrayList
         For Each mMap As Map In cMaps
@@ -696,17 +713,45 @@ Public Class Launcher
                     Dim sAddon As String = cAddons(cboMaps.SelectedIndex - 3)
                     If mMap.AddOn <> sAddon Then Continue For
             End Select
-            Dim pos As Integer = InStrRev(mMap.Name, ".bsp")
-            If pos > 0 Then
-                items.Add(Mid(mMap.Name, 1, pos - 1))
-            End If
+            items.Add(mMap.Name)
         Next
         items.Sort()
         lstMaps.Items.AddRange(items.ToArray)
     End Sub
 
-    Private Sub btnReload_Click(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles btnReload.Click
-        RefreshMaps()
+    Private Sub btnRefresh_Click(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles btnRefresh.Click
+        If tabs.SelectedIndex = 0 Then
+            btnRefresh.Enabled = False
+            RefreshMaps()
+        ElseIf tabs.SelectedIndex = 1 Then
+            btnRefresh.Enabled = False
+            RefreshNetwork()
+        End If
     End Sub
 
+    Private Sub chkCustomPeer_CheckedChanged(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles chkCustomPeer.CheckedChanged
+        txtPeer.Enabled = chkCustomPeer.Checked
+        lstNetwork.Enabled = Not txtPeer.Enabled
+        If lstNetwork.Enabled Then
+            grpNetwork.BackColor = SystemColors.Window
+            lstNetwork.ForeColor = SystemColors.WindowText
+        Else
+            grpNetwork.BackColor = SystemColors.Control
+            lstNetwork.ForeColor = SystemColors.ControlDark
+        End If
+    End Sub
+
+    Private Sub tabs_SelectedIndexChanged(ByVal sender As Object, ByVal e As System.EventArgs) Handles tabs.SelectedIndexChanged
+        Select Case tabs.SelectedIndex
+            Case 0
+                btnLaunch.Enabled = True
+                btnRefresh.Enabled = Not RefreshingMaps
+            Case 1
+                btnLaunch.Enabled = True
+                btnRefresh.Enabled = Not RefreshingNetwork
+            Case Else
+                btnLaunch.Enabled = False
+                btnRefresh.Enabled = False
+        End Select
+    End Sub
 End Class

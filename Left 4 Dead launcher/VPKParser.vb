@@ -19,9 +19,9 @@ Public Class VPKParser
             Me.Progress = Progress
             If signature = nVPKSignature Then
                 Dim version As Long = reader.ReadUInt32
-                Console.WriteLine("VPK file version " & version)
+                'Console.WriteLine("VPK file version " & version)
                 Dim directoryLength As Long = reader.ReadUInt32
-                Console.WriteLine("Directory length: " & directoryLength)
+                'Console.WriteLine("Directory length: " & directoryLength)
                 If Not Progress Is Nothing Then
                     Progress.Style = ProgressBarStyle.Blocks
                     Progress.Maximum = directoryLength
@@ -74,6 +74,7 @@ Public Class VPKParser
     End Function
 
     Public Sub ParseVPKFile(ByRef stream As FileStream, ByRef reader As BinaryReader, ByVal path As String, ByVal file As String, ByVal extension As String)
+        Application.DoEvents()
         Dim CRC As Long = reader.ReadUInt32
         Dim PreloadBytes As Integer = reader.ReadUInt16
         Dim ArchiveIndex As Integer = reader.ReadUInt16

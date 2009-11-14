@@ -35,22 +35,19 @@ Public Class IPHlp
     Private Const ICMP_STATUS_GENERAL_FAILURE As Int32 = 11050
     'General Failure
 
-    Public Shared Function ReturnMachines(ByVal nTimeout As Integer, ByVal nPort As Integer, ByVal nStart As Integer, ByVal nEnd As Integer) As PingObject
+    Public Shared Function ReturnMachines(ByVal sIPBase As String, ByVal nStart As Integer, ByVal nEnd As Integer, ByVal nTimeout As Integer, ByVal nPort As Integer) As PingObject
         Dim oPingObject As New PingObject
         oPingObject.nStart = nStart
         oPingObject.nEnd = nEnd
-        Dim reply As String
-        Dim sLocalhost As String = IPHlp.Localhost(3)
         Dim sIP As String
         For i = nStart To nEnd
-            sIP = sLocalhost & "." & CStr(i)
+            sIP = sIPBase & "." & CStr(i)
             'IPHlp.Ping(oPingObject, sIP, Nothing, reply, nTimeout)
             Try
                 Dim IP As IPAddress = Dns.GetHostByName(sIP).AddressList(0)
                 Dim connector = New PortConnect
                 For p = nPort To nPort ' + 30
                     If connector.Connect(oPingObject, IP, p, nTimeout) Then
-                        AddMachine(oPingObject, IP)
                         Exit For
                     End If
                 Next p
@@ -60,22 +57,6 @@ Public Class IPHlp
         Next i
         Return oPingObject
     End Function
-
-    Public Shared Sub AddMachine(ByRef oPingObject As PingObject, ByVal IP As IPAddress)
-        Dim obj As New NetworkObject()
-        Dim sHostName As String = System.Net.Dns.GetHostEntry(IP.ToString).HostName
-        Dim sIP As String = IP.ToString
-        If sHostName = sIP Then
-            obj.Name = sHostName
-        Else
-            If sIP = IPHlp.Localhost Then
-                sIP = "localhost"
-            End If
-            obj.Name = sHostName & " (" & sIP & ")"
-        End If
-        obj.IP = sIP
-        oPingObject.cMachines.Add(obj)
-    End Sub
 
     Public Shared Function Localhost(Optional ByVal nBlocks As Integer = 4) As String
         Dim LocalHostName As String
@@ -133,7 +114,8 @@ Public Class IPHlp
             'success
             Case ICMP_SUCCESS
                 EvaluatePingResponse = "Success!"
-                AddMachine(oPingObject, IP)
+                MsgBox("Success!")
+                'AddMachine(oPingObject, IP)
             Case ICMP_STATUS_BUFFER_TO_SMALL
                 EvaluatePingResponse = "Buffer Too Small"
             Case ICMP_STATUS_DESTINATION_NET_UNREACH

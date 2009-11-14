@@ -2,6 +2,7 @@
 Imports System.DirectoryServices
 Imports System.Net
 Imports System.Management
+Imports System.Collections.Specialized
 
 Class NetworkProbe
 
@@ -155,5 +156,6 @@ Class NetworkObject
 
     Public Name As String
     Public IP As String
+    Public Params As StringDictionary
 
 End Class
