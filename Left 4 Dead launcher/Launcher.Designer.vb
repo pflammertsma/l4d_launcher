@@ -34,6 +34,8 @@ Partial Class Launcher
         Me.Label1 = New System.Windows.Forms.Label
         Me.tabs = New System.Windows.Forms.TabControl
         Me.TabPage1 = New System.Windows.Forms.TabPage
+        Me.Label2 = New System.Windows.Forms.Label
+        Me.cboGameType = New System.Windows.Forms.ComboBox
         Me.grpVPK = New System.Windows.Forms.GroupBox
         Me.pgbVPK = New System.Windows.Forms.ProgressBar
         Me.lstMaps = New System.Windows.Forms.ListBox
@@ -46,6 +48,7 @@ Partial Class Launcher
         Me.optEasy = New System.Windows.Forms.RadioButton
         Me.TabPage2 = New System.Windows.Forms.TabPage
         Me.grpNetwork = New System.Windows.Forms.GroupBox
+        Me.lblNetwork = New System.Windows.Forms.Label
         Me.pgbNetwork = New System.Windows.Forms.ProgressBar
         Me.txtPeer = New System.Windows.Forms.TextBox
         Me.chkCustomPeer = New System.Windows.Forms.CheckBox
@@ -55,7 +58,9 @@ Partial Class Launcher
         Me.ColumnHeader3 = New System.Windows.Forms.ColumnHeader
         Me.ColumnHeader4 = New System.Windows.Forms.ColumnHeader
         Me.TabPage3 = New System.Windows.Forms.TabPage
+        Me.chkMultiplayer = New System.Windows.Forms.CheckBox
         Me.grpNetworkScanning = New System.Windows.Forms.GroupBox
+        Me.Label9 = New System.Windows.Forms.Label
         Me.cboScan = New System.Windows.Forms.ComboBox
         Me.Label8 = New System.Windows.Forms.Label
         Me.lblTimeout = New System.Windows.Forms.Label
@@ -70,17 +75,12 @@ Partial Class Launcher
         Me.ImageList = New System.Windows.Forms.ImageList(Me.components)
         Me.lblVersion = New System.Windows.Forms.Label
         Me.ToolTip = New System.Windows.Forms.ToolTip(Me.components)
-        Me.lblNetwork = New System.Windows.Forms.Label
-        Me.Label2 = New System.Windows.Forms.Label
-        Me.cboGameType = New System.Windows.Forms.ComboBox
-        Me.chkMultiplayer = New System.Windows.Forms.CheckBox
         Me.btnCancel = New System.Windows.Forms.Button
         Me.btnRefresh = New System.Windows.Forms.Button
         Me.btnFix = New System.Windows.Forms.Button
         Me.picBanner = New System.Windows.Forms.PictureBox
         Me.PictureBox1 = New System.Windows.Forms.PictureBox
         Me.btnLaunch = New System.Windows.Forms.Button
-        Me.Label9 = New System.Windows.Forms.Label
         Me.grpGeneral.SuspendLayout()
         Me.tabs.SuspendLayout()
         Me.TabPage1.SuspendLayout()
@@ -112,7 +112,7 @@ Partial Class Launcher
         '
         Me.txtName.Location = New System.Drawing.Point(109, 16)
         Me.txtName.Name = "txtName"
-        Me.txtName.Size = New System.Drawing.Size(118, 20)
+        Me.txtName.Size = New System.Drawing.Size(124, 20)
         Me.txtName.TabIndex = 1
         '
         'chkName
@@ -132,7 +132,7 @@ Partial Class Launcher
         Me.cboPlayer.Items.AddRange(New Object() {"Bill", "Francis", "Louis", "Zoey"})
         Me.cboPlayer.Location = New System.Drawing.Point(109, 40)
         Me.cboPlayer.Name = "cboPlayer"
-        Me.cboPlayer.Size = New System.Drawing.Size(118, 21)
+        Me.cboPlayer.Size = New System.Drawing.Size(124, 21)
         Me.cboPlayer.TabIndex = 4
         '
         'chkPlayer
@@ -148,7 +148,7 @@ Partial Class Launcher
         'chkVideo
         '
         Me.chkVideo.AutoSize = True
-        Me.chkVideo.Location = New System.Drawing.Point(243, 42)
+        Me.chkVideo.Location = New System.Drawing.Point(281, 42)
         Me.chkVideo.Name = "chkVideo"
         Me.chkVideo.Size = New System.Drawing.Size(112, 17)
         Me.chkVideo.TabIndex = 6
@@ -160,7 +160,7 @@ Partial Class Launcher
         Me.chkConsole.AutoSize = True
         Me.chkConsole.Checked = True
         Me.chkConsole.CheckState = System.Windows.Forms.CheckState.Checked
-        Me.chkConsole.Location = New System.Drawing.Point(243, 19)
+        Me.chkConsole.Location = New System.Drawing.Point(281, 19)
         Me.chkConsole.Name = "chkConsole"
         Me.chkConsole.Size = New System.Drawing.Size(99, 17)
         Me.chkConsole.TabIndex = 5
@@ -212,10 +212,30 @@ Partial Class Launcher
         Me.TabPage1.Text = "Host"
         Me.TabPage1.UseVisualStyleBackColor = True
         '
+        'Label2
+        '
+        Me.Label2.AutoSize = True
+        Me.Label2.Location = New System.Drawing.Point(261, 32)
+        Me.Label2.Name = "Label2"
+        Me.Label2.Size = New System.Drawing.Size(61, 13)
+        Me.Label2.TabIndex = 18
+        Me.Label2.Text = "Game type:"
+        Me.Label2.TextAlign = System.Drawing.ContentAlignment.MiddleRight
+        '
+        'cboGameType
+        '
+        Me.cboGameType.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList
+        Me.cboGameType.FormattingEnabled = True
+        Me.cboGameType.Items.AddRange(New Object() {"Coop", "Versus", "Survival"})
+        Me.cboGameType.Location = New System.Drawing.Point(328, 29)
+        Me.cboGameType.Name = "cboGameType"
+        Me.cboGameType.Size = New System.Drawing.Size(91, 21)
+        Me.cboGameType.TabIndex = 17
+        '
         'grpVPK
         '
         Me.grpVPK.Controls.Add(Me.pgbVPK)
-        Me.grpVPK.Location = New System.Drawing.Point(106, 112)
+        Me.grpVPK.Location = New System.Drawing.Point(109, 111)
         Me.grpVPK.Name = "grpVPK"
         Me.grpVPK.Size = New System.Drawing.Size(204, 40)
         Me.grpVPK.TabIndex = 16
@@ -235,10 +255,10 @@ Partial Class Launcher
         Me.lstMaps.ColumnWidth = 162
         Me.lstMaps.FormattingEnabled = True
         Me.lstMaps.IntegralHeight = False
-        Me.lstMaps.Location = New System.Drawing.Point(9, 56)
+        Me.lstMaps.Location = New System.Drawing.Point(6, 56)
         Me.lstMaps.MultiColumn = True
         Me.lstMaps.Name = "lstMaps"
-        Me.lstMaps.Size = New System.Drawing.Size(410, 151)
+        Me.lstMaps.Size = New System.Drawing.Size(413, 151)
         Me.lstMaps.TabIndex = 13
         '
         'cboMaps
@@ -329,13 +349,23 @@ Partial Class Launcher
         '
         Me.grpNetwork.Controls.Add(Me.lblNetwork)
         Me.grpNetwork.Controls.Add(Me.pgbNetwork)
-        Me.grpNetwork.Location = New System.Drawing.Point(111, 82)
+        Me.grpNetwork.Location = New System.Drawing.Point(110, 83)
         Me.grpNetwork.Name = "grpNetwork"
         Me.grpNetwork.Size = New System.Drawing.Size(204, 40)
         Me.grpNetwork.TabIndex = 15
         Me.grpNetwork.TabStop = False
         Me.grpNetwork.Text = "Populating network peers..."
         Me.grpNetwork.Visible = False
+        '
+        'lblNetwork
+        '
+        Me.lblNetwork.Location = New System.Drawing.Point(6, 14)
+        Me.lblNetwork.Name = "lblNetwork"
+        Me.lblNetwork.Size = New System.Drawing.Size(191, 16)
+        Me.lblNetwork.TabIndex = 17
+        Me.lblNetwork.Text = "No servers found on the network."
+        Me.lblNetwork.TextAlign = System.Drawing.ContentAlignment.MiddleCenter
+        Me.lblNetwork.Visible = False
         '
         'pgbNetwork
         '
@@ -410,6 +440,18 @@ Partial Class Launcher
         Me.TabPage3.Text = "Additional parameters"
         Me.TabPage3.UseVisualStyleBackColor = True
         '
+        'chkMultiplayer
+        '
+        Me.chkMultiplayer.AutoSize = True
+        Me.chkMultiplayer.Checked = True
+        Me.chkMultiplayer.CheckState = System.Windows.Forms.CheckState.Checked
+        Me.chkMultiplayer.Location = New System.Drawing.Point(9, 76)
+        Me.chkMultiplayer.Name = "chkMultiplayer"
+        Me.chkMultiplayer.Size = New System.Drawing.Size(140, 17)
+        Me.chkMultiplayer.TabIndex = 8
+        Me.chkMultiplayer.Text = "Enable multiplayer mode"
+        Me.chkMultiplayer.UseVisualStyleBackColor = True
+        '
         'grpNetworkScanning
         '
         Me.grpNetworkScanning.Controls.Add(Me.Label9)
@@ -427,6 +469,16 @@ Partial Class Launcher
         Me.grpNetworkScanning.TabIndex = 7
         Me.grpNetworkScanning.TabStop = False
         Me.grpNetworkScanning.Text = "Network peer scanning"
+        '
+        'Label9
+        '
+        Me.Label9.AutoSize = True
+        Me.Label9.ForeColor = System.Drawing.SystemColors.GrayText
+        Me.Label9.Location = New System.Drawing.Point(228, 22)
+        Me.Label9.Name = "Label9"
+        Me.Label9.Size = New System.Drawing.Size(133, 13)
+        Me.Label9.TabIndex = 15
+        Me.Label9.Text = "Recommended: Broadcast"
         '
         'cboScan
         '
@@ -545,48 +597,6 @@ Partial Class Launcher
         Me.lblVersion.Text = "L4D version"
         Me.lblVersion.TextAlign = System.Drawing.ContentAlignment.TopRight
         '
-        'lblNetwork
-        '
-        Me.lblNetwork.Location = New System.Drawing.Point(6, 14)
-        Me.lblNetwork.Name = "lblNetwork"
-        Me.lblNetwork.Size = New System.Drawing.Size(191, 16)
-        Me.lblNetwork.TabIndex = 17
-        Me.lblNetwork.Text = "No servers found on the network."
-        Me.lblNetwork.TextAlign = System.Drawing.ContentAlignment.MiddleCenter
-        Me.lblNetwork.Visible = False
-        '
-        'Label2
-        '
-        Me.Label2.AutoSize = True
-        Me.Label2.Location = New System.Drawing.Point(261, 32)
-        Me.Label2.Name = "Label2"
-        Me.Label2.Size = New System.Drawing.Size(61, 13)
-        Me.Label2.TabIndex = 18
-        Me.Label2.Text = "Game type:"
-        Me.Label2.TextAlign = System.Drawing.ContentAlignment.MiddleRight
-        '
-        'cboGameType
-        '
-        Me.cboGameType.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList
-        Me.cboGameType.FormattingEnabled = True
-        Me.cboGameType.Items.AddRange(New Object() {"Coop", "Versus", "Survival"})
-        Me.cboGameType.Location = New System.Drawing.Point(328, 29)
-        Me.cboGameType.Name = "cboGameType"
-        Me.cboGameType.Size = New System.Drawing.Size(91, 21)
-        Me.cboGameType.TabIndex = 17
-        '
-        'chkMultiplayer
-        '
-        Me.chkMultiplayer.AutoSize = True
-        Me.chkMultiplayer.Checked = True
-        Me.chkMultiplayer.CheckState = System.Windows.Forms.CheckState.Checked
-        Me.chkMultiplayer.Location = New System.Drawing.Point(9, 76)
-        Me.chkMultiplayer.Name = "chkMultiplayer"
-        Me.chkMultiplayer.Size = New System.Drawing.Size(140, 17)
-        Me.chkMultiplayer.TabIndex = 8
-        Me.chkMultiplayer.Text = "Enable multiplayer mode"
-        Me.chkMultiplayer.UseVisualStyleBackColor = True
-        '
         'btnCancel
         '
         Me.btnCancel.DialogResult = System.Windows.Forms.DialogResult.Cancel
@@ -662,16 +672,6 @@ Partial Class Launcher
         Me.btnLaunch.Text = "&Launch"
         Me.btnLaunch.TextAlign = System.Drawing.ContentAlignment.MiddleRight
         Me.btnLaunch.UseVisualStyleBackColor = True
-        '
-        'Label9
-        '
-        Me.Label9.AutoSize = True
-        Me.Label9.ForeColor = System.Drawing.SystemColors.GrayText
-        Me.Label9.Location = New System.Drawing.Point(228, 22)
-        Me.Label9.Name = "Label9"
-        Me.Label9.Size = New System.Drawing.Size(133, 13)
-        Me.Label9.TabIndex = 15
-        Me.Label9.Text = "Recommended: Broadcast"
         '
         'Launcher
         '

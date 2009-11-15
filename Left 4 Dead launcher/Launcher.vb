@@ -173,6 +173,8 @@ Public Class Launcher
         grpVPK.Visible = False
         If nSelectedMap >= 0 And nSelectedMap < cboMaps.Items.Count Then
             cboMaps.SelectedIndex = nSelectedMap
+        Else
+            cboMaps.SelectedIndex = 0
         End If
         cboMaps.Enabled = True
         cboMaps_SelectedIndexChanged(Nothing, Nothing)
@@ -698,6 +700,8 @@ Public Class Launcher
         Dim items As New ArrayList
         For Each mMap As Map In cMaps
             Select Case cboMaps.SelectedIndex
+                Case -1
+                    Exit For
                 Case 0
                     If Not mMap.AddOn Is Nothing Then Continue For
                 Case 1
@@ -710,7 +714,11 @@ Public Class Launcher
                     If Not mMap.AddOn Is Nothing Then Continue For
                     If Not mMap.IsSurival Then Continue For
                 Case Else
-                    Dim sAddon As String = cAddons(cboMaps.SelectedIndex - 3)
+                    Dim index As Integer = cboMaps.SelectedIndex - 3
+                    If index <= 0 Or index > cAddons.Count Then
+                        Exit For
+                    End If
+                    Dim sAddon As String = cAddons(index)
                     If mMap.AddOn <> sAddon Then Continue For
             End Select
             items.Add(mMap.Name)

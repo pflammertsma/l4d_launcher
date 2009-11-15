@@ -27,6 +27,8 @@ Public Class PortConnect
     Private _offset As Integer
     Private _params As StringDictionary
 
+    Private bTimedout As Boolean
+
     WithEvents Timeout As System.Timers.Timer
 
     Public Sub New()
@@ -81,12 +83,10 @@ Retry:
 
     Public Function Connect(ByRef oPingObject As PingObject, ByVal IP As IPAddress, ByVal nPort As Integer, ByVal nTimeout As Integer) As Boolean
         Dim bSuccess As Boolean
-        Dim bBroadcast As Boolean
-        Dim bTimedout As Boolean
-
         Dim remoteIpEndPoint As New IPEndPoint(IP, nPort)
         Dim remoteEndPoint As EndPoint = DirectCast(remoteIpEndPoint, EndPoint)
 
+        bTimedout = False
         connection = New Socket(AddressFamily.InterNetwork, SocketType.Dgram, ProtocolType.Udp)
         connection.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.ReceiveTimeout, nTimeout)
         If IP.ToString = "255.255.255.255" Then
@@ -94,7 +94,7 @@ Retry:
         End If
         connection.SendTo(System.Text.Encoding.[Default].GetBytes(connectionMessage), remoteIpEndPoint)
         _readBuffer = New Byte(100 * 1024 - 1) {}
-        While Not bTimedout
+        Do
             Try
                 connection.ReceiveFrom(_readBuffer, remoteIpEndPoint)
                 _responseString = System.Text.Encoding.[Default].GetString(_readBuffer)
@@ -108,7 +108,7 @@ Retry:
             Finally
                 connection.Disconnect(False)
             End Try
-        End While
+        Loop Until bTimedout
         Return bSuccess
     End Function
 
@@ -187,6 +187,7 @@ Retry:
     Private Sub TimeoutHandler(ByVal source As Object, ByVal e As System.Timers.ElapsedEventArgs) Handles Timeout.Elapsed
         Timeout.Stop()
         Timeout.Close()
+        bTimedout = True
         Try
             If Not connection Is Nothing Then
                 If connection.ProtocolType = ProtocolType.Tcp Then
