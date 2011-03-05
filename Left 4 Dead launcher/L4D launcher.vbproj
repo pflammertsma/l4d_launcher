@@ -21,6 +21,10 @@
     <ApplicationManifest>My Project\app.manifest</ApplicationManifest>
     <TargetFrameworkSubset>
     </TargetFrameworkSubset>
+    <IsWebBootstrapper>false</IsWebBootstrapper>
+    <SignManifests>false</SignManifests>
+    <TargetZone>LocalIntranet</TargetZone>
+    <GenerateManifests>false</GenerateManifests>
     <PublishUrl>publish\</PublishUrl>
     <Install>true</Install>
     <InstallFrom>Disk</InstallFrom>
@@ -33,7 +37,6 @@
     <MapFileExtensions>true</MapFileExtensions>
     <ApplicationRevision>0</ApplicationRevision>
     <ApplicationVersion>1.0.0.%2a</ApplicationVersion>
-    <IsWebBootstrapper>false</IsWebBootstrapper>
     <UseApplicationTrust>false</UseApplicationTrust>
     <BootstrapperEnabled>true</BootstrapperEnabled>
   </PropertyGroup>
@@ -42,7 +45,7 @@
     <DebugType>full</DebugType>
     <DefineDebug>true</DefineDebug>
     <DefineTrace>true</DefineTrace>
-    <OutputPath>bin\Debug\</OutputPath>
+    <OutputPath>bin\</OutputPath>
     <DocumentationFile>l4d_launcher.xml</DocumentationFile>
     <NoWarn>42016,41999,42017,42018,42019,42032,42036,42020,42021,42022</NoWarn>
     <PlatformTarget>AnyCPU</PlatformTarget>
@@ -53,12 +56,11 @@
     <DefineDebug>false</DefineDebug>
     <DefineTrace>true</DefineTrace>
     <Optimize>true</Optimize>
-    <OutputPath>bin\Release\</OutputPath>
+    <OutputPath>bin\</OutputPath>
     <DocumentationFile>l4d_launcher.xml</DocumentationFile>
     <NoWarn>42016,41999,42017,42018,42019,42032,42036,42020,42021,42022</NoWarn>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="Microsoft.VisualBasic.PowerPacks.Vs, Version=9.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a" />
     <Reference Include="System" />
     <Reference Include="System.Data" />
     <Reference Include="System.Deployment" />
@@ -80,6 +82,20 @@
     <Import Include="System.Windows.Forms" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="..\AutoUpdate\AutoUpdate.vb" />
+    <Compile Include="Game.vb" />
+    <Compile Include="GameSelect.Designer.vb">
+      <DependentUpon>GameSelect.vb</DependentUpon>
+    </Compile>
+    <Compile Include="GameSelect.vb">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="PathChoose.Designer.vb">
+      <DependentUpon>PathChoose.vb</DependentUpon>
+    </Compile>
+    <Compile Include="PathChoose.vb">
+      <SubType>Form</SubType>
+    </Compile>
     <Compile Include="IniFile.vb" />
     <Compile Include="Map.vb" />
     <Compile Include="PingObject.vb" />
@@ -119,6 +135,12 @@
     <Compile Include="VPKParser.vb" />
   </ItemGroup>
   <ItemGroup>
+    <EmbeddedResource Include="GameSelect.resx">
+      <DependentUpon>GameSelect.vb</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="PathChoose.resx">
+      <DependentUpon>PathChoose.vb</DependentUpon>
+    </EmbeddedResource>
     <EmbeddedResource Include="NotFound.resx">
       <DependentUpon>NotFound.vb</DependentUpon>
     </EmbeddedResource>
@@ -147,6 +169,9 @@
   <ItemGroup>
     <None Include="Resources\fix_glow_16.png" />
     <Content Include="Resources\icon.ico" />
+    <None Include="Resources\l4d2_banner.bmp" />
+    <Content Include="Resources\l4d2_banner.png" />
+    <None Include="Resources\update_glow_16.png" />
     <None Include="Resources\refresh_glow_16.png" />
     <None Include="app.config" />
     <None Include="Resources\close_glow_16.png" />

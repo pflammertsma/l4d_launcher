@@ -28,6 +28,7 @@ Public Class PortConnect
     Private _params As StringDictionary
 
     Private bTimedout As Boolean
+    Public Shared bCanceled As Boolean
 
     WithEvents Timeout As System.Timers.Timer
 
@@ -44,6 +45,7 @@ Public Class PortConnect
     End Sub
 
     Public Shared Sub Connect(ByVal window As Launcher, ByVal bBroadcast As Boolean, ByVal nPort As Integer, ByVal nTimeout As Integer)
+        bCanceled = False
         _window = window
         nTotalIPs = 0
         If bBroadcast Then
@@ -53,10 +55,18 @@ Public Class PortConnect
             Dim sLocalhost As String = IPHlp.Localhost(3)
             nMaxIPs = nLastIP - nFirstIP
             For i = nFirstIP To nLastIP Step nStepIP
+                If bCanceled Then
+                    Exit For
+                End If
                 Dim nThisStep As Integer = Math.Min(i + nStepIP - 1, nLastIP)
                 ThreadPing.BeginInvoke(sLocalhost, i, nThisStep, nTimeout, nPort, ThreadPingCallback, Nothing)
             Next i
         End If
+    End Sub
+
+    Public Shared Sub Cancel()
+        bCanceled = True
+        [Delegate].RemoveAll(_listDelegate, _listDelegate)
     End Sub
 
     Private Shared Sub ThreadPingComplete(ByVal iAsyncResult As IAsyncResult)

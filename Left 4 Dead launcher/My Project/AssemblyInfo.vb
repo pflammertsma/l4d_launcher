@@ -14,7 +14,7 @@ Imports System.Runtime.InteropServices
 <Assembly: AssemblyDescription("")> 
 <Assembly: AssemblyCompany("CrimsonBase")> 
 <Assembly: AssemblyProduct("L4D Launcher")> 
-<Assembly: AssemblyCopyright("Copyright ©  2009")> 
+<Assembly: AssemblyCopyright("Copyright © 2010 Paul Lammertsma")> 
 <Assembly: AssemblyTrademark("")> 
 
 <Assembly: ComVisible(False)> 
@@ -33,7 +33,7 @@ Imports System.Runtime.InteropServices
 ' by using the '*' as shown below:
 ' <Assembly: AssemblyVersion("1.0.*")> 
 
-<Assembly: AssemblyVersion("1.4.0.*")> 
+<Assembly: AssemblyVersion("1.5.1.*")> 
 '<Assembly: AssemblyFileVersion("1.2.0.0")> 
 
 <Assembly: NeutralResourcesLanguageAttribute("en-US")> 

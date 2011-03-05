@@ -41,6 +41,9 @@ Public Class IPHlp
         oPingObject.nEnd = nEnd
         Dim sIP As String
         For i = nStart To nEnd
+            If PortConnect.bCanceled Then
+                Exit For
+            End If
             sIP = sIPBase & "." & CStr(i)
             'IPHlp.Ping(oPingObject, sIP, Nothing, reply, nTimeout)
             Try

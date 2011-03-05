@@ -1,6 +1,9 @@
 ﻿Imports Microsoft.Win32
 Imports System.IO
 Imports System.Collections.Specialized
+Imports System.Resources
+Imports System.Reflection
+Imports System.Threading
 
 ' -game left4dead -console -novid +sv_lan 1 +sv_allow_lobby_connect_only 0 +z_difficulty normal +map l4d_hospital01_apartment
 
@@ -8,10 +11,17 @@ Imports System.Collections.Specialized
 ' "C:\Windows\Left 4 Dead\uninstall.exe" "/U:C:\Program Files\Left 4 Dead\Uninstall\uninstall.xml"
 
 Public Class Launcher
-
     Private sAppDir As String = ""
-    Private sGameDir As String = ""
-    Private bNeedFix As Boolean
+
+    Public Const UpdateURL As String = "http://paul.luminos.nl/download/software/"
+
+    Private gL4D As New L4DGame()
+    Private gL4D2 As New L4D2Game()
+
+    Private curGame As Game
+
+    Private sSteamPath As String
+    Private Const STEAM_APP As String = "Steam App "
 
     Delegate Sub ListDelegate(ByVal count As Integer)
 
@@ -44,19 +54,57 @@ Public Class Launcher
     Private ListEmpty As Boolean
     Private cMachines As New Collection
 
+    Private dLastCheck As Date
+
+    Private Shared _window As Launcher
+    Delegate Function CheckForUpdatesT(ByVal window As Launcher, ByVal bUpdatePrompt As Boolean) As Boolean
+    Delegate Sub CheckForUpdatesCompleteT()
+    Private Shared UpdateCheck As CheckForUpdatesT = AddressOf CheckForUpdates
+    Private Shared UpdateCheckCallback As AsyncCallback = AddressOf CheckForUpdatesComplete
+
     Private Sub Launcher_FormClosed(ByVal sender As Object, ByVal e As System.Windows.Forms.FormClosedEventArgs) Handles Me.FormClosed
         Me.Hide()
         [Delegate].RemoveAll(_listDelegate, _listDelegate)
         End
     End Sub
 
+    Private Sub SetPath(ByRef game As Game, ByVal sPath As String)
+        If Mid(sPath, Len(sPath) - 1) <> "\" Then
+            sPath = sPath & "\"
+        End If
+        Dim iPath As New DirectoryInfo(sPath)
+        If iPath.Exists() Then
+            If game.sGameDir <> "" And LCase(game.sGameDir) <> LCase(sPath) Then
+                PathChoose.btn1.Text = game.sGameDir
+                PathChoose.btn2.Text = sPath
+                If PathChoose.ShowDialog() = Windows.Forms.DialogResult.Cancel Then
+                    End
+                End If
+                sPath = PathChoose.Path
+            End If
+            game.sGameDir = sPath
+            game.bNeedFix = False
+        End If
+    End Sub
+
+    Private Function GetSteam(ByRef Hive As RegistryHive, ByVal sKey As String, ByRef sRegPath As String) As Boolean
+        Dim sErr As String = ""
+        Dim sPath As String = GetRegValue(Hive, "SOFTWARE\Valve\Steam\", sKey, sErr)
+        If sErr = "" Then
+            sRegPath = Replace(sPath, "/", "\")
+            Dim sDir As String = sRegPath & "\steamapps\common\"
+            SetPath(gL4D, sDir & gL4D.sFolderName)
+            SetPath(gL4D2, sDir & gL4D2.sFolderName)
+            Return True
+        End If
+        Return False
+    End Function
+
     Private Sub Form1_Load(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles MyBase.Load
         Try
             Dim iBuildInfo As FileVersionInfo = FileVersionInfo.GetVersionInfo(Application.ExecutablePath)
             lblVersion.Text = "v" & iBuildInfo.ProductVersion
-            lblVersion.Parent = picBanner
             lblVersion.BackColor = Color.Transparent
-            lblVersion.Left = picBanner.Width - lblVersion.Width - 4
         Catch
             lblVersion.Visible = False
         End Try
@@ -66,45 +114,103 @@ Public Class Launcher
             sAppDir &= "\"
         End If
 
-        cboPlayer.SelectedIndex = 0
+        Try
+            Dim sErr As String = ""
+            GetSteam(RegistryHive.LocalMachine, "InstallPath", sSteamPath)
+            GetSteam(RegistryHive.CurrentUser, "InstallPath", sSteamPath)
+            GetSteam(RegistryHive.LocalMachine, "SteamPath", sSteamPath)
+            GetSteam(RegistryHive.CurrentUser, "SteamPath", sSteamPath)
+            If sSteamPath <> "" Then
+                Dim keys As String()
+                keys = GetRegKeys(RegistryHive.LocalMachine, "SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall", sErr)
+                If sErr <> "" And False Then
+                    MsgBox("Something went wrong while populating the Steam application paths from the registry." & vbCrLf & vbCrLf & sErr, MsgBoxStyle.Critical)
+                End If
+                ' Steam app ids from:
+                ' http://developer.valvesoftware.com/wiki/Steam_Application_IDs
+                For Each key As String In keys
+                    If key.StartsWith(STEAM_APP) Then
+                        Dim sPath As String = GetRegValue(RegistryHive.LocalMachine, "SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\" & key, "InstallLocation", sErr)
+                        If sErr = "" Then
+                            Select Case key.Substring(Len(STEAM_APP))
+                                Case "500"
+                                    SetPath(gL4D, sPath)
+                                Case "550"
+                                    SetPath(gL4D2, sPath)
+                            End Select
+                        End If
+                    End If
+                Next
+            Else
+                ' MsgBox("No Steam installation found!" & vbCrLf & vbCrLf & sErr, MsgBoxStyle.Critical)
+            End If
+
+            With gL4D
+                If .bNeedFix Then
+                    Dim pos1 As Integer, pos2 As Integer
+                    Dim sRegPath As String = GetRegValue(RegistryHive.LocalMachine, "SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\Left 4 Dead", "UninstallString", sErr)
+                    If sErr <> "" And False Then
+                        MsgBox("Something went wrong while reading the install path from the registry." & vbCrLf & vbCrLf & sErr, MsgBoxStyle.Critical)
+                    End If
+                    pos1 = InStr(sRegPath, "/U:")
+                    If pos1 > -1 Then
+                        pos1 += 3
+                        pos2 = InStrRev(sRegPath, "\Uninstall\uninstall.xml")
+                        If pos2 > pos1 Then
+                            SetPath(gL4D, Mid(sRegPath, pos1, pos2 - pos1 + 1))
+                        End If
+                    End If
+                End If
+            End With
+        Catch
+            MsgBox(Err.Description)
+        End Try
+
+        curGame = gL4D
+        If gL4D2.sGameDir <> "" Then
+            curGame = gL4D2
+        End If
+
+        If gL4D.sGameDir <> "" And gL4D2.sGameDir <> "" Then
+            GameSelect.Text = Application.ProductName
+            If GameSelect.ShowDialog() <> Windows.Forms.DialogResult.OK Then
+                End
+            End If
+            Select Case GameSelect.Selected
+                Case gL4D.sId
+                    curGame = gL4D
+                Case gL4D2.sId
+                    curGame = gL4D2
+            End Select
+        End If
+        If curGame.Equals(gL4D) Then
+            picBanner.Image = GameSelect.btn1.Image
+        Else
+            picBanner.Image = GameSelect.btn2.Image
+        End If
+
+        GetControls(Me)
+        For Each sPlayer As String In curGame.GetPlayers()
+            cboPlayer.Items.Add(sPlayer)
+        Next
+
+        LoadSettings()
+        btnFix.Visible = curGame.bNeedFix
+        If cboPlayer.Items.Count > 0 Then
+            cboPlayer.SelectedIndex = 0
+        Else
+            chkPlayer.Enabled = False
+        End If
         cboGameType.SelectedIndex = 0
         cboScan.SelectedIndex = 0
         txtPort.Text = nDefaultPort
         txtTimeout.Text = nDefaultTimeout
-
-        sGameDir = ""
-
-        GetControls(Me)
-        LoadSettings()
 
         Call chkName_CheckedChanged(Nothing, Nothing)
         Call chkPlayer_CheckedChanged(Nothing, Nothing)
         Call chkCustomPeer_CheckedChanged(Nothing, Nothing)
         lblPort.Text = "Default: " & nDefaultPort
         lblTimeout.Text = "Recommended: " & nDefaultTimeout
-
-        bNeedFix = True
-        Try
-            Dim sErr As String = ""
-            Dim pos1 As Integer, pos2 As Integer
-            Dim sRegPath As String
-            sRegPath = GetRegValue(RegistryHive.LocalMachine, "SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\Left 4 Dead", "UninstallString", sErr)
-            If sErr <> "" And False Then
-                MsgBox("Something went wrong while reading the install path from the registry." & vbCrLf & vbCrLf & sErr, MsgBoxStyle.Critical)
-            End If
-            pos1 = InStr(sRegPath, "/U:")
-            If pos1 > -1 Then
-                pos1 += 3
-                pos2 = InStrRev(sRegPath, "\Uninstall\uninstall.xml")
-                If pos2 > pos1 Then
-                    bNeedFix = False
-                    sGameDir = Mid(sRegPath, pos1, pos2 - pos1 + 1)
-                End If
-            End If
-        Catch
-        End Try
-
-        btnFix.Visible = bNeedFix
 
         Me.Show()
 
@@ -113,13 +219,15 @@ Public Class Launcher
             If parts.Length = 2 Then
                 Select Case parts(0)
                     Case "gamedir"
-                        sGameDir = StripQuotes(parts(1))
-                        CheckGameDir(False, True)
+                        Dim sDir As String = StripQuotes(parts(1))
+                        If CheckGameDir(sDir, False, True) Then
+                            curGame.sGameDir = sDir
+                        End If
                 End Select
             End If
         Next arg
 
-        CheckGameDir(False, False)
+        CheckGameDir(curGame.sGameDir, False, False)
 
         btnRefresh.Enabled = False
         RefreshMaps()
@@ -146,7 +254,7 @@ Public Class Launcher
 
         cMaps.Clear()
         Dim pos As Integer
-        Dim map As String = Dir(sGameDir & "left4dead\maps\*.bsp")
+        Dim map As String = Dir(curGame.sGameDir & curGame.sDataFolder & "\maps\*.bsp")
         Do While map <> ""
             Application.DoEvents()
             Dim oMap As New Map(map)
@@ -155,7 +263,7 @@ Public Class Launcher
         Loop
 
         cAddons.Clear()
-        Dim addon As String = Dir(sGameDir & "left4dead\addons\*.vpk")
+        Dim addon As String = Dir(curGame.sGameDir & curGame.sDataFolder & "\addons\*.vpk")
         Do While addon <> ""
             Application.DoEvents()
             pos = InStrRev(addon, ".vpk")
@@ -163,7 +271,7 @@ Public Class Launcher
                 cAddons.Add(addon)
                 'Console.WriteLine(addon)
                 Dim parser As New VPKParser()
-                parser.Parse(sGameDir & "left4dead\addons\", addon, cMaps, pgbVPK)
+                parser.Parse(curGame.sGameDir & curGame.sDataFolder & "\addons\", addon, cMaps, pgbVPK)
                 addon = Mid(addon, 1, pos - 1)
                 cboMaps.Items.Add("Addon: " & addon)
             End If
@@ -241,6 +349,34 @@ Public Class Launcher
         Return sAns
     End Function
 
+    Public Function GetRegKeys(ByVal Hive As RegistryHive, ByVal Key As String, Optional ByRef ErrInfo As String = "") As String()
+        Dim objParent As RegistryKey = GetRegKey(Hive)
+        If objParent Is Nothing Then Return Nothing
+
+        Dim objSubkey As RegistryKey
+        Dim subkeys As String()
+
+        Try
+            objSubkey = objParent.OpenSubKey(Key)
+            'if can't be found, object is not initialized
+            If Not objSubkey Is Nothing Then
+                subkeys = objSubkey.GetSubKeyNames()
+            End If
+
+        Catch ex As Exception
+
+            ErrInfo = ex.Message
+        Finally
+
+            'if no error but value is empty, populate errinfo
+            If ErrInfo = "" And subkeys Is Nothing Then
+                ErrInfo = _
+                   "No value found for requested registry key"
+            End If
+        End Try
+        Return subkeys
+    End Function
+
     Public Function SetRegValue(ByVal Hive As RegistryHive, ByVal Key As String, ByVal ValueName As String, ByVal Value As String, Optional ByRef ErrInfo As String = "") As Boolean
         Dim success As Boolean = False
 
@@ -300,21 +436,21 @@ Public Class Launcher
         Return Nothing
     End Function
 
-    Function CheckGameDir(ByVal showError As Boolean, ByVal fixReg As Boolean) As Boolean
-        If sGameDir.Length > 1 Then
-            If sGameDir.Substring(sGameDir.Length - 1) <> "\" Then
-                sGameDir &= "\"
+    Function CheckGameDir(ByRef sDir As String, ByVal showError As Boolean, ByVal fixReg As Boolean) As Boolean
+        If sDir.Length > 1 Then
+            If sDir.Substring(sDir.Length - 1) <> "\" Then
+                sDir &= "\"
             End If
         End If
-        sGameDir = sGameDir.Replace("\\", "\")
-        Dim exeFile As New FileInfo(sGameDir & "left4dead.exe")
+        sDir = sDir.Replace("\\", "\")
+        Dim exeFile As New FileInfo(sDir & curGame.sEXE)
         If exeFile.Exists() Then
             If fixReg Then
                 If VistaSecurity.IsAdmin Then
-                    Dim str As String = """C:\Windows\Left 4 Dead\uninstall.exe"" ""/U:" & sGameDir & "\Uninstall\uninstall.xml"""
+                    Dim str As String = """C:\Windows\Left 4 Dead\uninstall.exe"" ""/U:" & sDir & "\Uninstall\uninstall.xml"""
                     Dim sErr As String = ""
                     If SetRegValue(RegistryHive.LocalMachine, "SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\Left 4 Dead", "UninstallString", str, sErr) Then
-                        bNeedFix = False
+                        curGame.bNeedFix = False
                     Else
                         If sErr <> "" Then
                             MsgBox("Something went wrong while storing the registry information. You might want to try again running this application in administrator mode." & vbCrLf & vbCrLf & sErr, MsgBoxStyle.Critical)
@@ -323,28 +459,28 @@ Public Class Launcher
                         End If
                     End If
                 Else
-                    VistaSecurity.RestartElevated("gamedir=""" & sGameDir & """")
+                    VistaSecurity.RestartElevated("gamedir=""" & sDir & """")
                 End If
             End If
-            btnFix.Visible = bNeedFix
+            btnFix.Visible = curGame.bNeedFix
             Return True
         End If
-        btnFix.Visible = bNeedFix
-        If sGameDir = "" Then
-            sGameDir = "C:\Program Files\Left 4 Dead\"
+        btnFix.Visible = curGame.bNeedFix
+        If sDir = "" Then
+            sDir = sSteamPath & "\Left 4 Dead\"
         End If
         If showError Then
-            MsgBox("The specified path does not contain ""left4dead.exe"".", MsgBoxStyle.Exclamation)
+            MsgBox("The specified path does not contain """ & curGame.sEXE & """.", MsgBoxStyle.Exclamation)
         End If
-        NotFound.SetPath(sGameDir)
+        NotFound.SetPath(sDir)
         NotFound.NoExit = False
         Dim res As DialogResult = NotFound.ShowDialog(Me)
         If res <> Windows.Forms.DialogResult.Cancel Then
-            sGameDir = NotFound.GetPath()
+            sDir = NotFound.GetPath()
             If res = Windows.Forms.DialogResult.Retry Then
-                CheckGameDir(True, True)
+                CheckGameDir(sDir, True, True)
             Else
-                CheckGameDir(True, False)
+                CheckGameDir(sDir, True, False)
             End If
         Else
             Me.Close()
@@ -360,7 +496,7 @@ Public Class Launcher
 
     Sub Launch(ByVal mode As Integer)
         Dim sCommandLine As String
-        sCommandLine = ""
+        sCommandLine = " -port 27015 +sv_pure 0"
         If chkConsole.Checked Then
             sCommandLine &= " -console"
         End If
@@ -372,21 +508,24 @@ Public Class Launcher
         End If
         If txtName.Enabled Then
             sCommandLine &= " +name """ & txtName.Text & """"
-            Dim revIniFile As String = "rev.ini"
-            Dim iniFile As New FileInfo(sGameDir & revIniFile)
-            If iniFile.Exists() Then
-                Dim revIni As New IniFile(sGameDir & revIniFile)
-                Dim sName As String = revIni.GetString("steamclient", "PlayerName", "")
-                If sName <> txtName.Text Then
-                    Dim iniBakFile As New FileInfo(sGameDir & revIniFile & ".bak")
-                    If Not iniBakFile.Exists() Then
-                        FileCopy(sGameDir & revIniFile, sGameDir & revIniFile & ".bak")
+            If curGame.Equals(gL4D) Then
+                Dim revIniFile As String = "rev.ini"
+                Dim iniFile As New FileInfo(curGame.sGameDir & revIniFile)
+                If iniFile.Exists() Then
+                    Dim revIni As New IniFile(curGame.sGameDir & revIniFile)
+                    Dim sName As String = revIni.GetString("steamclient", "PlayerName", "")
+                    If sName <> txtName.Text Then
+                        Dim iniBakFile As New FileInfo(curGame.sGameDir & revIniFile & ".bak")
+                        If Not iniBakFile.Exists() Then
+                            FileCopy(curGame.sGameDir & revIniFile, curGame.sGameDir & revIniFile & ".bak")
+                        End If
+                        revIni.WriteString("steamclient", "PlayerName", txtName.Text)
                     End If
-                    revIni.WriteString("steamclient", "PlayerName", txtName.Text)
+                Else
+                    If MsgBox("The INI file required to set the player name is missing:" & vbCrLf & vbCrLf & "    " & curGame.sGameDir & revIniFile & vbCrLf & vbCrLf & "Continue?", MsgBoxStyle.Exclamation + MsgBoxStyle.YesNo) = MsgBoxResult.No Then
+                        Exit Sub
+                    End If
                 End If
-            Else
-                MsgBox("The INI file required to set the player name is missing:" & vbCrLf & vbCrLf & "    " & sGameDir & revIniFile, MsgBoxStyle.Exclamation)
-                Exit Sub
             End If
         End If
         If cboPlayer.Enabled Then
@@ -464,7 +603,7 @@ Public Class Launcher
                 sCommandLine &= " +map " & map
             End If
         End If
-        Dim sExec As String = sGameDir & "left4dead.exe -game left4dead" & sCommandLine
+        Dim sExec As String = curGame.sGameDir & curGame.sEXE & " -game " & curGame.sDataFolder & sCommandLine
         If chkClipboard.Checked Then
             Clipboard.SetText(sExec)
             MsgBox("The execution command has been copied to the clipboard:" & vbCrLf & vbCrLf & sExec, MsgBoxStyle.Information)
@@ -474,7 +613,6 @@ Public Class Launcher
     End Sub
 
     Private Sub btnLaunch_Click(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles btnLaunch.Click
-        SaveSettings()
         If tabs.SelectedIndex = 0 Then
             Launch(1)
         ElseIf tabs.SelectedIndex = 1 Then
@@ -482,9 +620,11 @@ Public Class Launcher
         Else
             MsgBox("Please specify whether you want to host or join a game by selecting the appropriate tab.", MsgBoxStyle.Information)
         End If
+        SaveSettings()
     End Sub
 
-    Private Sub btnCancel_Click(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles btnCancel.Click
+    Private Sub btnExit_Click(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles btnExit.Click
+        Me.Visible = False
         SaveSettings()
         Me.Close()
     End Sub
@@ -514,8 +654,10 @@ Public Class Launcher
         If sText Is Nothing Then
             lblNetwork.Visible = False
             pgbNetwork.Visible = True
+            btnNetworkCancel.Visible = True
         Else
             pgbNetwork.Visible = False
+            btnNetworkCancel.Visible = False
             lblNetwork.Text = sText
             lblNetwork.Visible = True
         End If
@@ -538,6 +680,12 @@ Public Class Launcher
         End Try
     End Sub
 
+    Sub ResetUpdates()
+        SyncLock Me
+            btnUpdate.Enabled = True
+        End SyncLock
+    End Sub
+
     Sub UpdateMachines(ByVal Machines As Collection, ByVal bLast As Boolean)
         SyncLock Me
             If ListEmpty And Machines.Count > 0 Then
@@ -547,6 +695,12 @@ Public Class Launcher
             End If
             Dim obj As NetworkObject
             For Each obj In Machines
+                If obj.Params.ContainsKey("mod") Then
+                    Debug.Print("Server on " & obj.IP & " has mod " & obj.Params("mod"))
+                    If curGame.sServerModName.Length > 0 And obj.Params("mod") <> curGame.sServerModName Then
+                        Continue For
+                    End If
+                End If
                 Dim items(4) As String
                 items(0) = obj.Name
                 If obj.Params.ContainsKey("hostname") Then
@@ -568,8 +722,12 @@ Public Class Launcher
                 cMachines.Add(obj.IP)
             Next
             If bLast Then
-                If ListEmpty Then
-                    UpdateNetwork("", "No servers found on the network.")
+                If cMachines.Count = 0 Then
+                    If curGame.sName.Length > 0 Then
+                        UpdateNetwork("", "No " & curGame.sName & " servers found on the network.")
+                    Else
+                        UpdateNetwork("", "No servers found on the network.")
+                    End If
                 Else
                     UpdateNetwork(Nothing)
                 End If
@@ -597,13 +755,21 @@ Public Class Launcher
 
     Sub LoadSettings()
         Dim settingIni As New IniFile(sAppDir & settingIniFile)
-        Dim sDir As String = settingIni.GetString("l4d", "gamedir", Nothing)
-        If Not sDir Is Nothing Then
-            sGameDir = sDir
-        End If
-        For Each cControl In cControls
-            LoadSettingIni(settingIni, cControl)
-        Next
+        LoadSettingsGame(settingIni, gL4D)
+        LoadSettingsGame(settingIni, gL4D2)
+        With gL4D
+            Dim sID As String = curGame.sId
+            ' If [controls].cboPlayer is set, we need to grab the options from this section
+            If settingIni.GetInteger("controls", "cboPlayer", -1) <> -1 Then
+                ' Backwards compatibility for old versions
+                sID = "controls"
+            End If
+        End With
+        SetControls(curGame, cControls)
+        Dim sVersion As String = settingIni.GetString("launcher", "version", "1.4.1")
+        Dim sLastCheck As String = settingIni.GetString("launcher", "last_update_check", New Date(2010, 1, 1).ToString)
+        dLastCheck = Date.Parse(sLastCheck)
+        ' Use sVersion to add backwards compatibility
         cSurvivalMaps.Add("l4d_hospital02_subway")
         cSurvivalMaps.Add("l4d_hospital03_sewers")
         cSurvivalMaps.Add("l4d_hospital04_interior")
@@ -625,49 +791,158 @@ Public Class Launcher
                 cSurvivalMaps.Add(sMap)
             End If
         Loop Until sMap Is Nothing
+        If DateDiff(DateInterval.Day, dLastCheck, Date.Today) > 14 Then
+            StartUpdateCheck(False)
+        End If
+    End Sub
+
+    Private Sub LoadSettingsGame(ByVal settingIni As IniFile, ByVal game As Game)
+        With game
+            Dim sDir As String = settingIni.GetString(.sId, "gamedir", Nothing)
+            If Not sDir Is Nothing And Directory.Exists(sDir) Then
+                .sGameDir = sDir
+            End If
+            For Each cControl In cControls
+                LoadSettingIni(settingIni, gL4D, curGame.sId, cControl)
+            Next
+        End With
+    End Sub
+
+    Public Sub StartUpdateCheck(ByVal bUpdatePrompt As Boolean)
+        btnUpdate.Enabled = False
+        UpdateCheck.BeginInvoke(Me, bUpdatePrompt, UpdateCheckCallback, Nothing)
+    End Sub
+
+    Public Shared Function CheckForUpdates(ByVal window As Launcher, ByVal bUpdatePrompt As Boolean) As Boolean
+        _window = window
+        Dim nResult As Integer = Updater.Update("", UpdateURL, bUpdatePrompt)
+        If nResult <> Updater.UpdateError Then
+            _window.dLastCheck = Date.Now
+            If bUpdatePrompt And nResult = Updater.UpdateNotAvailable Then
+                MsgBox("No updates are available at the moment.", MsgBoxStyle.Information)
+            End If
+        End If
+    End Function
+
+    Public Shared Sub CheckForUpdatesComplete(ByVal iAsyncResult As IAsyncResult)
+Retry:
+        Try
+            SyncLock _window
+                Dim handler1 As New CheckForUpdatesCompleteT(AddressOf _window.ResetUpdates)
+                Dim args1() As Object = {}
+                _window.BeginInvoke(handler1, args1)
+            End SyncLock
+        Catch ex As InvalidOperationException
+            Threading.Thread.Sleep(500)
+            GoTo Retry
+        Catch ex As Exception
+            Console.WriteLine("Error: " & ex.Message)
+        End Try
     End Sub
 
     Sub SaveSettings()
-        Dim settingIni As New IniFile(sAppDir & settingIniFile)
-        settingIni.WriteString("l4d", "gamedir", sGameDir)
-        For Each cControl In cControls
-            SaveSettingIni(settingIni, cControl)
-        Next
-        Dim count As Integer
-        For Each sMap In cSurvivalMaps
-            count += 1
-            settingIni.WriteString("survivor_maps", CStr(count), sMap)
+        Try
+            File.Delete(sAppDir & settingIniFile)
+            Dim settingIni As New IniFile(sAppDir & settingIniFile)
+            settingIni.WriteString("launcher", "version", Application.ProductVersion)
+            settingIni.WriteString("launcher", "last_update_check", dLastCheck.ToString)
+            With gL4D
+                settingIni.WriteString(.sId, "gamedir", .sGameDir)
+            End With
+            With gL4D2
+                settingIni.WriteString(.sId, "gamedir", .sGameDir)
+            End With
+            GetControls(curGame, cControls)
+            For Each cControl In cControls
+                SaveSettingIni(settingIni, gL4D)
+            Next
+            For Each cControl In cControls
+                SaveSettingIni(settingIni, gL4D2)
+            Next
+            Dim count As Integer
+            For Each sMap In cSurvivalMaps
+                count += 1
+                settingIni.WriteString("survivor_maps", CStr(count), sMap)
+            Next
+        Catch
+            MsgBox("The settings could not be saved.", MsgBoxStyle.Critical)
+        End Try
+    End Sub
+
+    Sub SetControls(ByRef game As Game, ByRef cControls As Collection)
+        For Each cControl As Control In cControls
+            Try
+                If cControl.Name = "cboMaps" Then
+                    nSelectedMap = Integer.Parse(game.GetControl(cControl.Name))
+                Else
+                    If TypeOf cControl Is CheckBox Then
+                        Dim cCheck As CheckBox = cControl
+                        cCheck.Checked = Integer.Parse(game.GetControl(cControl.Name))
+                    ElseIf TypeOf cControl Is TextBox Then
+                        Dim cText As TextBox = cControl
+                        cText.Text = game.GetControl(cControl.Name)
+                    ElseIf TypeOf cControl Is ComboBox Then
+                        Dim cCombo As ComboBox = cControl
+                        Dim index As Integer = Integer.Parse(game.GetControl(cControl.Name))
+                        If cCombo.Items.Count > index Then
+                            cCombo.SelectedIndex = index
+                        End If
+                    End If
+                End If
+            Catch ex As Exception
+            End Try
         Next
     End Sub
 
-    Sub LoadSettingIni(ByRef settingIni As IniFile, ByRef cControl As Control)
+    Sub GetControls(ByRef game As Game, ByRef cControls As Collection)
+        For Each cControl As Control In cControls
+            If TypeOf cControl Is CheckBox Then
+                Dim cCheck As CheckBox = cControl
+                game.SetControl(cControl.Name, IIf(cCheck.Checked, 1, 0))
+            ElseIf TypeOf cControl Is TextBox Then
+                Dim cText As TextBox = cControl
+                game.SetControl(cControl.Name, cText.Text)
+            ElseIf TypeOf cControl Is ComboBox Then
+                Dim cCombo As ComboBox = cControl
+                game.SetControl(cControl.Name, cCombo.SelectedIndex)
+            End If
+        Next
+    End Sub
+
+    Sub LoadSettingIni(ByRef settingIni As IniFile, ByRef game As Game, ByRef sId As String, ByRef cControl As Control)
+        Dim value As Object = ""
         If cControl.Name = "cboMaps" Then
-            nSelectedMap = settingIni.GetInteger("controls", cControl.Name, cboMaps.SelectedIndex)
+            value = settingIni.GetInteger(sId, cControl.Name, cboMaps.SelectedIndex)
         Else
             If TypeOf cControl Is CheckBox Then
                 Dim cCheck As CheckBox = cControl
-                cCheck.Checked = settingIni.GetInteger("controls", cControl.Name, cCheck.Checked)
+                value = settingIni.GetInteger(sId, cControl.Name, cCheck.Checked)
             ElseIf TypeOf cControl Is TextBox Then
                 Dim cText As TextBox = cControl
-                cText.Text = settingIni.GetString("controls", cControl.Name, cText.Text)
+                value = settingIni.GetString(sId, cControl.Name, cText.Text)
             ElseIf TypeOf cControl Is ComboBox Then
                 Dim cCombo As ComboBox = cControl
-                cCombo.SelectedIndex = settingIni.GetInteger("controls", cControl.Name, cCombo.SelectedIndex)
+                value = settingIni.GetInteger(sId, cControl.Name, cCombo.SelectedIndex)
+            Else
+                Exit Sub
             End If
+        End If
+        If Not value Is Nothing Then
+            game.SetControl(cControl.Name, value)
         End If
     End Sub
 
-    Sub SaveSettingIni(ByRef settingIni As IniFile, ByRef cControl As Control)
-        If TypeOf cControl Is CheckBox Then
-            Dim cCheck As CheckBox = cControl
-            settingIni.WriteInteger("controls", cControl.Name, IIf(cCheck.Checked, 1, 0))
-        ElseIf TypeOf cControl Is TextBox Then
-            Dim cText As TextBox = cControl
-            settingIni.WriteString("controls", cControl.Name, cText.Text)
-        ElseIf TypeOf cControl Is ComboBox Then
-            Dim cCombo As ComboBox = cControl
-            settingIni.WriteInteger("controls", cControl.Name, cCombo.SelectedIndex)
-        End If
+    Sub SaveSettingIni(ByRef settingIni As IniFile, ByRef game As Game)
+        For Each sKey As String In game.GetControlKeys()
+            Dim cControl As Object = game.GetControl(sKey)
+            If Not cControl Is Nothing Then
+                If TypeOf cControl Is Integer Then
+                    settingIni.WriteInteger(game.sId, sKey, cControl)
+                Else
+                    settingIni.WriteString(game.sId, sKey, cControl)
+                End If
+            End If
+        Next
     End Sub
 
     Private Sub chkPlayer_CheckedChanged(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles chkPlayer.CheckedChanged
@@ -676,18 +951,19 @@ Public Class Launcher
 
     Private Sub chkName_CheckedChanged(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles chkName.CheckedChanged
         txtName.Enabled = chkName.Checked
+        lblName.Visible = chkName.Checked
     End Sub
 
     Private Sub btnFix_Click(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles btnFix.Click
-        NotFound.SetPath(sGameDir)
+        NotFound.SetPath(curGame.sGameDir)
         NotFound.NoExit = True
         Dim res As DialogResult = NotFound.ShowDialog(Me)
         If res <> Windows.Forms.DialogResult.Cancel Then
-            sGameDir = NotFound.GetPath()
+            curGame.sGameDir = NotFound.GetPath()
             If res = Windows.Forms.DialogResult.Retry Then
-                CheckGameDir(True, True)
+                CheckGameDir(curGame.sGameDir, True, True)
             Else
-                CheckGameDir(True, False)
+                CheckGameDir(curGame.sGameDir, True, False)
             End If
         Else
             Exit Sub
@@ -761,5 +1037,17 @@ Public Class Launcher
                 btnLaunch.Enabled = False
                 btnRefresh.Enabled = False
         End Select
+    End Sub
+
+    Private Sub grpGeneral_Enter(ByVal sender As System.Object, ByVal e As System.EventArgs)
+
+    End Sub
+
+    Private Sub btnNetworkCancel_Click(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles btnNetworkCancel.Click
+        PortConnect.Cancel()
+    End Sub
+
+    Private Sub btnUpdate_Click(ByVal sender As System.Object, ByVal e As System.EventArgs) Handles btnUpdate.Click
+        StartUpdateCheck(True)
     End Sub
 End Class
